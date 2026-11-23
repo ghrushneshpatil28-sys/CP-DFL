@@ -134,3 +134,5 @@ npm.cmd audit
 Playwright starts isolated API/Vite servers and uses installed Edge. Change `channel: 'msedge'` in its configuration or install Chromium for another environment. No production patient/account data is used. Windows sandboxing can block asyncio's internal loopback socket pair; run local TestClient/browser checks where loopback is permitted. Use a fresh pytest temporary directory if the sandbox prevents cleanup.
 
 See [stage evidence, acceptance and limitations](docs/IMPLEMENTATION.md), [secure aggregation scope](docs/SECURE_AGGREGATION.md), [verified dataset audit](dataset_audit_report.json), [checkpoint audit](docs/checkpoint-audit.json), and [screenshots](docs/screens). No clinical, patient-independent or independently audited production privacy validation is claimed.
+#   C P - D F L  
+ 
