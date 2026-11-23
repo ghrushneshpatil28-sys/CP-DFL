@@ -1,4 +1,3 @@
-# DFL ACC FINAL-CP README
 
 ## Distributed Lung Cancer Diagnosis Using Privacy-Preserving Federated Learning
 
