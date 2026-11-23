@@ -1,0 +1,654 @@
+[
+  {
+    "path": "backend/alembic.ini",
+    "bytes": 126
+  },
+  {
+    "path": "backend/api_schemas.py",
+    "bytes": 4623,
+    "imports": [
+      "from datetime import date",
+      "from typing import Annotated, Literal",
+      "from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator"
+    ]
+  },
+  {
+    "path": "backend/api_test.py",
+    "bytes": 89,
+    "imports": []
+  },
+  {
+    "path": "backend/bootstrap.py",
+    "bytes": 1509,
+    "imports": [
+      "import argparse",
+      "import getpass",
+      "from sqlalchemy import select",
+      "from backend.database import Base, make_database",
+      "from backend.models import User, FederatedClient",
+      "from backend.security import password_hash"
+    ]
+  },
+  {
+    "path": "backend/database.py",
+    "bytes": 812,
+    "imports": [
+      "import os",
+      "from pathlib import Path",
+      "from sqlalchemy import create_engine, event",
+      "from sqlalchemy.orm import DeclarativeBase, sessionmaker"
+    ]
+  },
+  {
+    "path": "backend/generate_report.py",
+    "bytes": 268,
+    "imports": []
+  },
+  {
+    "path": "backend/image_pipeline.py",
+    "bytes": 262,
+    "imports": []
+  },
+  {
+    "path": "backend/import_experiment.py",
+    "bytes": 2772,
+    "imports": [
+      "import argparse",
+      "import json",
+      "from pathlib import Path",
+      "from sqlalchemy import select",
+      "from backend.bootstrap import initialize",
+      "from backend.database import make_database",
+      "from backend.models import AuditLog, Experiment, PrivacyMetric, RoundMetric, now",
+      "from ml.checkpoints import load_checkpoint, file_sha256"
+    ]
+  },
+  {
+    "path": "backend/invalidate_experiment.py",
+    "bytes": 750,
+    "imports": [
+      "import argparse",
+      "from backend.database import make_database",
+      "from backend.models import AuditLog, Experiment"
+    ]
+  },
+  {
+    "path": "backend/main.py",
+    "bytes": 25846,
+    "imports": [
+      "from contextlib import asynccontextmanager",
+      "from datetime import date",
+      "import os",
+      "from pathlib import Path",
+      "import secrets",
+      "import threading",
+      "import time",
+      "from fastapi import APIRouter, Depends, FastAPI, File, HTTPException, Query, Request, Response, UploadFile",
+      "from fastapi.middleware.cors import CORSMiddleware",
+      "from fastapi.responses import FileResponse",
+      "from pydantic import ValidationError",
+      "from sqlalchemy import func, or_, select",
+      "from sqlalchemy.exc import IntegrityError",
+      "from backend import api_schemas as s",
+      "from backend.bootstrap import initialize",
+      "from backend.database import ROOT, make_database",
+      "from backend.models import Analysis, AuditLog, ClinicalHistory, DoctorProfile, Experiment, FederatedClient, LoginAttempt, MedicalImage, Patient, PrivacyMetric, Report, RoundMetric, Session, User, Visit, now, uid",
+      "from backend.security import COOKIE, admin, audit, current_user, doctor, get_db, password_hash, public_user, token_hash, verify_password",
+      "from backend.storage import protected_path, validate_image",
+      "from ml.inference.image_predictor import ImagePredictor",
+      "from backend.reports import generate_report",
+      "from ml.privacy import capabilities",
+      "from ml.checkpoints import load_checkpoint, file_sha256",
+      "from ml.privacy import capabilities",
+      "from ml.privacy import capabilities",
+      "import logging"
+    ]
+  },
+  {
+    "path": "backend/ml_service.py",
+    "bytes": 262,
+    "imports": []
+  },
+  {
+    "path": "backend/models.py",
+    "bytes": 6435,
+    "imports": [
+      "from datetime import datetime, timezone",
+      "import uuid",
+      "from sqlalchemy import JSON, Boolean, CheckConstraint, Column, Float, ForeignKey, Integer, String, Text, UniqueConstraint",
+      "from backend.database import Base"
+    ]
+  },
+  {
+    "path": "backend/reports.py",
+    "bytes": 3933,
+    "imports": [
+      "from pathlib import Path",
+      "from xml.sax.saxutils import escape",
+      "from reportlab.lib import colors",
+      "from reportlab.lib.pagesizes import A4",
+      "from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle",
+      "from reportlab.lib.units import mm",
+      "from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle",
+      "from backend.storage import protected_path"
+    ]
+  },
+  {
+    "path": "backend/requirements-dev.txt",
+    "bytes": 82
+  },
+  {
+    "path": "backend/requirements-postgres.txt",
+    "bytes": 44
+  },
+  {
+    "path": "backend/requirements-privacy.txt",
+    "bytes": 29
+  },
+  {
+    "path": "backend/requirements.txt",
+    "bytes": 251
+  },
+  {
+    "path": "backend/research.db",
+    "bytes": 262144
+  },
+  {
+    "path": "backend/schemas.py",
+    "bytes": 262,
+    "imports": []
+  },
+  {
+    "path": "backend/security.py",
+    "bytes": 2463,
+    "imports": [
+      "import hashlib",
+      "import hmac",
+      "import secrets",
+      "import time",
+      "from fastapi import Depends, HTTPException, Request",
+      "from sqlalchemy import select",
+      "from backend.models import AuditLog, Session, User",
+      "from backend.models import DoctorProfile"
+    ]
+  },
+  {
+    "path": "backend/storage.py",
+    "bytes": 2073,
+    "imports": [
+      "import hashlib",
+      "import io",
+      "import warnings",
+      "from pathlib import Path",
+      "from fastapi import HTTPException",
+      "from PIL import Image, ImageOps, UnidentifiedImageError"
+    ]
+  },
+  {
+    "path": "backend/test_api.py",
+    "bytes": 89,
+    "imports": []
+  },
+  {
+    "path": "backend/test_img.jpg",
+    "bytes": 20
+  },
+  {
+    "path": "backend/test_valid.jpg",
+    "bytes": 27036
+  },
+  {
+    "path": "backend/worker.py",
+    "bytes": 2979,
+    "imports": [
+      "import argparse",
+      "import time",
+      "import traceback",
+      "from sqlalchemy import select, update",
+      "from backend.bootstrap import initialize",
+      "from backend.database import ROOT, make_database",
+      "from backend.models import AuditLog, Experiment, PrivacyMetric, RoundMetric, now",
+      "from ml.engine import run_experiment"
+    ]
+  },
+  {
+    "path": "backend/__init__.py",
+    "bytes": 42,
+    "imports": []
+  },
+  {
+    "path": "backend/migrations/env.py",
+    "bytes": 633,
+    "imports": [
+      "from alembic import context",
+      "from backend.database import Base, make_database",
+      "from backend import models"
+    ]
+  },
+  {
+    "path": "backend/migrations/versions/0001_research.py",
+    "bytes": 8915,
+    "imports": [
+      "from alembic import op",
+      "import sqlalchemy as sa"
+    ]
+  },
+  {
+    "path": "ml/approve.py",
+    "bytes": 1336,
+    "imports": [
+      "import argparse",
+      "import json",
+      "from pathlib import Path",
+      "import shutil",
+      "from ml.checkpoints import file_sha256, load_checkpoint",
+      "from ml.dataset import ROOT, load_manifest"
+    ]
+  },
+  {
+    "path": "ml/checkpoints.py",
+    "bytes": 2974,
+    "imports": [
+      "import hashlib",
+      "from pathlib import Path",
+      "import torch",
+      "from torchvision import transforms",
+      "from torchvision.transforms import InterpolationMode",
+      "from ml.models import build_resnet18",
+      "from ml.models.resnet18 import use_group_norm"
+    ]
+  },
+  {
+    "path": "ml/dataset.py",
+    "bytes": 7920,
+    "imports": [
+      "import argparse",
+      "import csv",
+      "import hashlib",
+      "import json",
+      "import random",
+      "from collections import Counter, defaultdict",
+      "from pathlib import Path",
+      "from PIL import Image, ImageOps"
+    ]
+  },
+  {
+    "path": "ml/engine.py",
+    "bytes": 11345,
+    "imports": [
+      "import copy",
+      "import json",
+      "import random",
+      "import time",
+      "from collections import Counter",
+      "from pathlib import Path",
+      "import numpy as np",
+      "import torch",
+      "from PIL import Image, ImageOps",
+      "from torch.utils.data import DataLoader, Dataset",
+      "from ml.checkpoints import DEFAULT_PREPROCESS, preprocessing, save_checkpoint, file_sha256, load_checkpoint",
+      "from ml.dataset import ROOT, load_manifest",
+      "from ml.federated import aggregate, communication_bytes, partition_clients, proximal_loss",
+      "from ml.metrics import classification_metrics",
+      "from ml.models import build_resnet18",
+      "from ml.models.resnet18 import use_group_norm",
+      "from ml.privacy import PRIVACY_RNG, privatize"
+    ]
+  },
+  {
+    "path": "ml/evaluate.py",
+    "bytes": 1212,
+    "imports": [
+      "import argparse",
+      "import json",
+      "from ml.checkpoints import file_sha256, load_checkpoint",
+      "from ml.dataset import load_manifest",
+      "from ml.engine import evaluate, loader, seed_everything",
+      "from pathlib import Path"
+    ]
+  },
+  {
+    "path": "ml/federated.py",
+    "bytes": 3564,
+    "imports": [
+      "from collections import Counter, defaultdict",
+      "import numpy as np",
+      "import torch",
+      "from flwr.common import Code, FitRes, Status, ndarrays_to_parameters, parameters_to_ndarrays",
+      "from flwr.server.strategy import FedAvg"
+    ]
+  },
+  {
+    "path": "ml/gradcam.py",
+    "bytes": 1393,
+    "imports": [
+      "import numpy as np",
+      "import torch",
+      "import torch.nn.functional as F",
+      "from PIL import Image"
+    ]
+  },
+  {
+    "path": "ml/metrics.py",
+    "bytes": 1611,
+    "imports": [
+      "import numpy as np",
+      "from sklearn.metrics import accuracy_score, balanced_accuracy_score, confusion_matrix, precision_recall_fscore_support, roc_auc_score"
+    ]
+  },
+  {
+    "path": "ml/privacy.py",
+    "bytes": 2215,
+    "imports": [
+      "import importlib.util",
+      "import secrets",
+      "import torch",
+      "from opacus import PrivacyEngine",
+      "from opacus.validators import ModuleValidator"
+    ]
+  },
+  {
+    "path": "ml/README.md",
+    "bytes": 681
+  },
+  {
+    "path": "ml/train.py",
+    "bytes": 2061,
+    "imports": [
+      "import argparse",
+      "import json",
+      "from pathlib import Path",
+      "from ml.dataset import ROOT",
+      "from ml.engine import run_experiment"
+    ]
+  },
+  {
+    "path": "ml/__init__.py",
+    "bytes": 0,
+    "imports": []
+  },
+  {
+    "path": "ml/inference/combined_predictor.py",
+    "bytes": 262,
+    "imports": []
+  },
+  {
+    "path": "ml/inference/image_predictor.py",
+    "bytes": 1671,
+    "imports": [
+      "import os",
+      "import threading",
+      "import time",
+      "from pathlib import Path",
+      "import torch",
+      "from PIL import Image, ImageOps",
+      "from ml.checkpoints import load_checkpoint, file_sha256",
+      "from ml.gradcam import gradcam"
+    ]
+  },
+  {
+    "path": "ml/inference/tabular_predictor.py",
+    "bytes": 262,
+    "imports": []
+  },
+  {
+    "path": "ml/inference/__init__.py",
+    "bytes": 0,
+    "imports": []
+  },
+  {
+    "path": "ml/models/resnet18.py",
+    "bytes": 1605,
+    "imports": [
+      "import torch.nn as nn",
+      "from torchvision.models import resnet18, ResNet18_Weights",
+      "from torchvision.models.resnet import BasicBlock"
+    ]
+  },
+  {
+    "path": "ml/models/__init__.py",
+    "bytes": 67,
+    "imports": [
+      "from .resnet18 import build_resnet18"
+    ]
+  },
+  {
+    "path": "ml/training/evaluate.py",
+    "bytes": 174,
+    "imports": [
+      "from pathlib import Path",
+      "import sys",
+      "from ml.evaluate import main"
+    ]
+  },
+  {
+    "path": "ml/training/evaluate_advanced.py",
+    "bytes": 174,
+    "imports": [
+      "from pathlib import Path",
+      "import sys",
+      "from ml.evaluate import main"
+    ]
+  },
+  {
+    "path": "ml/training/inspect_dataset.py",
+    "bytes": 173,
+    "imports": [
+      "from pathlib import Path",
+      "import sys",
+      "from ml.dataset import main"
+    ]
+  },
+  {
+    "path": "ml/training/prepare_dataset.py",
+    "bytes": 173,
+    "imports": [
+      "from pathlib import Path",
+      "import sys",
+      "from ml.dataset import main"
+    ]
+  },
+  {
+    "path": "ml/training/run_gpu_training.ps1",
+    "bytes": 196
+  },
+  {
+    "path": "ml/training/train_cv.py",
+    "bytes": 262,
+    "imports": []
+  },
+  {
+    "path": "ml/training/train_final.py",
+    "bytes": 171,
+    "imports": [
+      "from pathlib import Path",
+      "import sys",
+      "from ml.train import main"
+    ]
+  },
+  {
+    "path": "ml/training/train_image.py",
+    "bytes": 171,
+    "imports": [
+      "from pathlib import Path",
+      "import sys",
+      "from ml.train import main"
+    ]
+  },
+  {
+    "path": "ml/training/train_image_4class.py",
+    "bytes": 171,
+    "imports": [
+      "from pathlib import Path",
+      "import sys",
+      "from ml.train import main"
+    ]
+  },
+  {
+    "path": "ml/training/train_tabular.py",
+    "bytes": 262,
+    "imports": []
+  },
+  {
+    "path": "ml/training/__init__.py",
+    "bytes": 0,
+    "imports": []
+  },
+  {
+    "path": "ml/utils/clean_dataset.py",
+    "bytes": 173,
+    "imports": [
+      "from pathlib import Path",
+      "import sys",
+      "from ml.dataset import main"
+    ]
+  },
+  {
+    "path": "ml/utils/config.py",
+    "bytes": 416,
+    "imports": [
+      "from pathlib import Path"
+    ]
+  },
+  {
+    "path": "ml/utils/gradcam_v2.py",
+    "bytes": 262,
+    "imports": []
+  },
+  {
+    "path": "ml/utils/merge_pool.py",
+    "bytes": 173,
+    "imports": [
+      "from pathlib import Path",
+      "import sys",
+      "from ml.dataset import main"
+    ]
+  },
+  {
+    "path": "ml/utils/split_data.py",
+    "bytes": 173,
+    "imports": [
+      "from pathlib import Path",
+      "import sys",
+      "from ml.dataset import main"
+    ]
+  },
+  {
+    "path": "ml/utils/__init__.py",
+    "bytes": 0,
+    "imports": []
+  },
+  {
+    "path": "frontend/src/api.js",
+    "bytes": 989
+  },
+  {
+    "path": "frontend/src/App.jsx",
+    "bytes": 56275
+  },
+  {
+    "path": "frontend/src/index.css",
+    "bytes": 30210
+  },
+  {
+    "path": "frontend/src/main.jsx",
+    "bytes": 229
+  },
+  {
+    "path": "frontend/src/useResource.js",
+    "bytes": 910
+  },
+  {
+    "path": "tests/conftest.py",
+    "bytes": 2417,
+    "imports": [
+      "import io",
+      "import os",
+      "from pathlib import Path",
+      "import pytest",
+      "import torch",
+      "from fastapi.testclient import TestClient",
+      "from PIL import Image",
+      "from backend.main import create_app",
+      "from backend.models import DoctorProfile, User",
+      "from backend.security import password_hash",
+      "from ml.checkpoints import DEFAULT_PREPROCESS, save_checkpoint",
+      "from ml.models import build_resnet18"
+    ]
+  },
+  {
+    "path": "tests/e2e_server.py",
+    "bytes": 1312,
+    "imports": [
+      "import uuid",
+      "from pathlib import Path",
+      "from backend.bootstrap import initialize",
+      "from backend.database import ROOT, make_database",
+      "from backend.import_experiment import import_directory",
+      "from backend.main import create_app",
+      "from backend.models import User, DoctorProfile",
+      "from backend.security import password_hash"
+    ]
+  },
+  {
+    "path": "tests/test_api.py",
+    "bytes": 8132,
+    "imports": [
+      "import io",
+      "from pathlib import Path",
+      "from fastapi.testclient import TestClient",
+      "from pypdf import PdfReader",
+      "from sqlalchemy import select",
+      "from backend.models import Patient, User, AuditLog",
+      "from backend.api_schemas import Login",
+      "import os"
+    ]
+  },
+  {
+    "path": "tests/test_ml.py",
+    "bytes": 5660,
+    "imports": [
+      "import copy",
+      "import hashlib",
+      "import json",
+      "import pytest",
+      "import torch",
+      "from PIL import Image",
+      "from ml.checkpoints import DEFAULT_PREPROCESS, load_checkpoint, preprocessing, save_checkpoint",
+      "from ml.dataset import create_manifest, group_rows, scan, verify_manifest",
+      "from ml.federated import aggregate, partition_clients, proximal_loss",
+      "from ml.gradcam import gradcam",
+      "from ml.models import build_resnet18",
+      "from ml.models.resnet18 import use_group_norm",
+      "from opacus.validators import ModuleValidator",
+      "from ml.engine import train_local",
+      "from torch.utils.data import DataLoader, TensorDataset"
+    ]
+  },
+  {
+    "path": "tests/test_privacy.py",
+    "bytes": 1057,
+    "imports": [
+      "import torch",
+      "from torch.utils.data import DataLoader, TensorDataset",
+      "from ml.privacy import privatize"
+    ]
+  },
+  {
+    "path": "tests/test_worker.py",
+    "bytes": 1638,
+    "imports": [
+      "import json",
+      "from pathlib import Path",
+      "from sqlalchemy import select",
+      "from backend.models import Experiment, RoundMetric",
+      "from backend.worker import execute",
+      "from ml.dataset import ROOT"
+    ]
+  },
+  {
+    "path": "tests/__init__.py",
+    "bytes": 0,
+    "imports": []
+  }
+]

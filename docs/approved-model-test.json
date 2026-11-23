@@ -1,0 +1,59 @@
+{
+  "accuracy": 0.9279279279279279,
+  "balanced_accuracy": 0.939635077566112,
+  "macro_precision": 0.9131467490842491,
+  "macro_recall": 0.939635077566112,
+  "macro_f1": 0.9243712427922954,
+  "per_class": {
+    "Adenocarcinoma": {
+      "sensitivity": 0.8787878787878788,
+      "specificity": 0.9615384615384616,
+      "support": 33
+    },
+    "Large Cell Carcinoma": {
+      "sensitivity": 0.9310344827586207,
+      "specificity": 0.9878048780487805,
+      "support": 29
+    },
+    "No Cancer": {
+      "sensitivity": 1.0,
+      "specificity": 0.9801980198019802,
+      "support": 10
+    },
+    "Squamous Cell Carcinoma": {
+      "sensitivity": 0.9487179487179487,
+      "specificity": 0.9722222222222222,
+      "support": 39
+    }
+  },
+  "confusion_matrix": [
+    [
+      29,
+      1,
+      1,
+      2
+    ],
+    [
+      2,
+      27,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      10,
+      0
+    ],
+    [
+      1,
+      0,
+      1,
+      37
+    ]
+  ],
+  "roc_auc": 0.9901819117426397,
+  "sample_count": 111,
+  "loss": 0.24804656763837948,
+  "inference_ms_per_image": 55.24922162163289
+}

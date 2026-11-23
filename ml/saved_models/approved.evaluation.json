@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "status": "verified",
+  "architecture": "ResNet18",
+  "model_version": "centralized-transfer-224-20261116",
+  "checkpoint_sha256": "7033a401bde3b63035773c489eeac4a3b4891afdbb4af93093cc972432d88fd1",
+  "manifest_sha256": "7b4e01e5e73fbbcb9d7714317246c9f11204a4e81e974f51e4112788e0681ffd",
+  "classes": [
+    "Adenocarcinoma",
+    "Large Cell Carcinoma",
+    "No Cancer",
+    "Squamous Cell Carcinoma"
+  ],
+  "image_size": 224,
+  "normalization": "batchnorm",
+  "algorithm": "centralized",
+  "test": {
+    "accuracy": 0.9279279279279279,
+    "balanced_accuracy": 0.939635077566112,
+    "macro_precision": 0.9131467490842491,
+    "macro_recall": 0.939635077566112,
+    "macro_f1": 0.9243712427922954,
+    "per_class": {
+      "Adenocarcinoma": {
+        "sensitivity": 0.8787878787878788,
+        "specificity": 0.9615384615384616,
+        "support": 33
+      },
+      "Large Cell Carcinoma": {
+        "sensitivity": 0.9310344827586207,
+        "specificity": 0.9878048780487805,
+        "support": 29
+      },
+      "No Cancer": {
+        "sensitivity": 1.0,
+        "specificity": 0.9801980198019802,
+        "support": 10
+      },
+      "Squamous Cell Carcinoma": {
+        "sensitivity": 0.9487179487179487,
+        "specificity": 0.9722222222222222,
+        "support": 39
+      }
+    },
+    "confusion_matrix": [
+      [
+        29,
+        1,
+        1,
+        2
+      ],
+      [
+        2,
+        27,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        10,
+        0
+      ],
+      [
+        1,
+        0,
+        1,
+        37
+      ]
+    ],
+    "roc_auc": 0.9901819117426397,
+    "sample_count": 111,
+    "loss": 0.24804656763837948,
+    "inference_ms_per_image": 55.24922162163289
+  },
+  "best_round": 15,
+  "rounds_completed": 20,
+  "validation_scope": "provisional image-group split; patient independence unverified",
+  "dp_enabled": false,
+  "secure_aggregation_enabled": false,
+  "evidence_recorded_at": "2026-11-16T17:41:31.165583+00:00",
+  "notice": "Measured on a previously used research test split; patient independence and external clinical validity remain unverified."
+}

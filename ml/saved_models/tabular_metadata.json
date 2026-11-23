@@ -1,0 +1,23 @@
+{
+  "model_type": "LogisticRegression",
+  "features": [
+    "age",
+    "gender_enc",
+    "smoking_status_enc",
+    "cigarettes_per_day",
+    "years_smoking",
+    "family_history",
+    "symptom_count",
+    "has_severe_symptom",
+    "has_cough",
+    "has_weight_loss",
+    "daily_tobacco",
+    "daily_alcohol"
+  ],
+  "class_names": [
+    "No / Benign",
+    "Malignant"
+  ],
+  "accuracy": 0.9,
+  "note": "Trained on SYNTHETIC demo data. Runtime uses rule-based clinical scoring from ml_service.py."
+}

@@ -1,0 +1,24 @@
+from pydantic import BaseModel
+from typing import List, Optional, Dict, Any
+
+# ── Request ───────────────────────────────────────────────────────────────────
+
+class PredictionRequest(BaseModel):
+    age: int
+    gender: str
+    smoking_history: str  # 'Never', 'Former', 'Current'
+    cigarettes_per_day: Optional[int] = 0
+    years_smoking: Optional[int] = 0
+    family_history: bool
+    symptoms: Dict[str, str]           # Symptom -> Severity ('Mild', 'Moderate', 'Severe')
+    daily_mouth_intake: Dict[str, str] # Habit   -> Frequency ('Occasional', 'Frequent', 'Daily')
+    has_imaging: bool = False
+
+class PredictionResponse(BaseModel):
+    # ── Strict ResNet18 JSON format ──────────────────────────────
+    predicted_subtype: str
+    confidence: float
+    probabilities: Dict[str, float]
+    gradcam_image: Optional[str] = None
+    fusion_explanation: str
+    model: str

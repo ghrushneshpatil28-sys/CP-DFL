@@ -1,0 +1,131 @@
+import os
+import argparse
+import numpy as np
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader
+import timm
+from sklearn.metrics import (
+    accuracy_score, precision_recall_fscore_support,
+    confusion_matrix, roc_auc_score
+)
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+from torchvision.datasets import ImageFolder
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
+from PIL import Image
+
+BASE_DIR = r"d:\COLLEGE\SEM-4\EDI-2\New folder\lung_cancer_detection"
+TEST_DIR = os.path.join(BASE_DIR, "backend", "DataSet", "test")
+OUTPUTS_DIR = os.path.join(BASE_DIR, "ml", "outputs")
+os.makedirs(os.path.join(OUTPUTS_DIR, "reports"), exist_ok=True)
+os.makedirs(os.path.join(OUTPUTS_DIR, "plots"), exist_ok=True)
+
+class AlbumentationTestFolder(ImageFolder):
+    def __init__(self, root, transform=None):
+        super().__init__(root)
+        self.transform = transform
+        
+    def __getitem__(self, index):
+        path, target = self.samples[index]
+        image = Image.open(path).convert("RGB")
+        image = np.array(image)
+        if self.transform:
+            image = self.transform(image=image)['image']
+        return image, target
+
+def get_transforms(img_size):
+    return A.Compose([
+        A.Resize(img_size, img_size),
+        A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ToTensorV2(),
+    ])
+
+def evaluate_model(args):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(f"Executing advanced evaluation on {device}")
+    
+    transform = get_transforms(args.img_size)
+    dataset = AlbumentationTestFolder(TEST_DIR, transform=transform)
+    loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=False)
+    
+    num_classes = len(dataset.classes)
+    class_names = dataset.classes
+    
+    model = timm.create_model(args.model_name, pretrained=False, num_classes=num_classes)
+    if os.path.exists(args.checkpoint):
+        model.load_state_dict(torch.load(args.checkpoint, map_location=device))
+        print(f"Loaded {args.checkpoint}")
+    else:
+        print(f"[WARN] Checkpoint {args.checkpoint} not found. Evaluating randomly initialized weights!")
+        
+    model = model.to(device)
+    model.eval()
+    
+    all_preds = []
+    all_labels = []
+    all_probs = []
+    
+    with torch.no_grad():
+        for images, labels in loader:
+            images = images.to(device)
+            outputs = model(images)
+            probs = torch.softmax(outputs, dim=1)
+            
+            all_probs.extend(probs.cpu().numpy())
+            preds = outputs.argmax(dim=1)
+            all_preds.extend(preds.cpu().numpy())
+            all_labels.extend(labels.numpy())
+            
+    all_probs = np.array(all_probs)
+    
+    # Metrics
+    acc = accuracy_score(all_labels, all_preds)
+    precision, recall, f1, support = precision_recall_fscore_support(all_labels, all_preds, labels=range(num_classes))
+    macro_f1 = np.mean(f1)
+    
+    try:
+        roc_auc = roc_auc_score(all_labels, all_probs, multi_class='ovr')
+    except Exception:
+        roc_auc = float('nan')
+        
+    # Classification Report TXT
+    report_path = os.path.join(OUTPUTS_DIR, "reports", "classification_report_advanced.txt")
+    with open(report_path, "w") as f:
+        f.write(f"Advanced Evaluation Report: {args.model_name}\n")
+        f.write("="*50 + "\n")
+        f.write(f"Overall Accuracy:  {acc:.4f}\n")
+        f.write(f"Macro F1-Score:    {macro_f1:.4f}\n")
+        f.write(f"ROC-AUC (OVR):     {roc_auc:.4f}\n\n")
+        
+        f.write(f"{'Class':<25} | {'Precision':<10} | {'Recall':<10} | {'F1-Score':<10} | {'Count'}\n")
+        f.write("-" * 75 + "\n")
+        for i, cls in enumerate(class_names):
+            f.write(f"{cls:<25} | {precision[i]:<10.4f} | {recall[i]:<10.4f} | {f1[i]:<10.4f} | {support[i]}\n")
+            
+    # Confusion Matrix
+    cm = confusion_matrix(all_labels, all_preds)
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=class_names, yticklabels=class_names)
+    plt.ylabel('Actual')
+    plt.xlabel('Predicted')
+    plt.title(f'Confusion Matrix - {args.model_name}')
+    cm_path = os.path.join(OUTPUTS_DIR, "plots", f"confusion_matrix_{args.model_name}.png")
+    plt.tight_layout()
+    plt.savefig(cm_path)
+    plt.close()
+    
+    print(f"\nEvaluation Complete: Acc={acc:.4f}, Macro-F1={macro_f1:.4f}")
+    print(f"Results saved to {report_path} and {cm_path}")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model_name", type=str, required=True)
+    parser.add_argument("--checkpoint", type=str, required=True)
+    parser.add_argument("--img_size", type=int, default=224)
+    parser.add_argument("--batch_size", type=int, default=32)
+    args = parser.parse_args()
+    
+    evaluate_model(args)

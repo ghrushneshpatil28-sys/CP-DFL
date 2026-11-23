@@ -1,0 +1,194 @@
+"""
+image_pipeline.py  —  Medical image validation + ML inference pipeline.
+
+Stage 1: Pillow-based validation (reject non-medical / colour photos)
+Stage 2: Pillow-based modality detection (X-Ray vs CT)
+Stage 3: ML inference via ImagePredictor (ResNet18 + dynamic dataset-driven subclasses)
+
+Four classes (or dynamically discovered):
+  No Cancer | Adenocarcinoma | Large Cell Carcinoma | Squamous Cell Carcinoma...
+"""
+
+import os
+import sys
+import logging
+import math
+from PIL import Image, ImageStat, ImageFilter
+
+# Allow imports from project root (so ml/ package is found)
+_BACKEND_DIR  = os.path.dirname(os.path.abspath(__file__))
+_PROJECT_ROOT = os.path.dirname(_BACKEND_DIR)
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+class ImagePipeline:
+    def __init__(self):
+        logger.info("Initialising Medical Image Pipeline...")
+        self._predictor = None
+        self._load_predictor()
+
+    def _load_predictor(self):
+        """Lazily load the ML predictor — fails gracefully if model not trained yet."""
+        try:
+            from ml.inference.image_predictor import get_predictor
+            self._predictor = get_predictor()
+            logger.info("ML ImagePredictor loaded successfully.")
+        except Exception as e:
+            logger.warning(f"ML predictor not available: {e}")
+            logger.warning("Falling back to heuristic-only pipeline. "
+                           "Run: python ml/training/train_image.py")
+            self._predictor = None
+
+    # ── Stage 1: Medical image validation ─────────────────────────────────────
+
+    def _validate_grayscale_medical(self, image: Image.Image) -> bool:
+        """
+        Reject colour photos (selfies).
+        Medical chest scans are inherently low-saturation (grayscale-like).
+        """
+        if image.mode != "RGB":
+            image_rgb = image.convert("RGB")
+        else:
+            image_rgb = image
+
+        stat   = ImageStat.Stat(image_rgb)
+        r_mean, g_mean, b_mean = stat.mean[:3]
+        diff   = max(r_mean, g_mean, b_mean) - min(r_mean, g_mean, b_mean)
+        logger.info(f"Image colour variance score: {diff:.2f}")
+
+        if diff > 40.0:
+            return False
+        return True
+
+    # ── Stage 2: Modality detection ───────────────────────────────────────────
+
+    def _determine_modality(self, image: Image.Image) -> str:
+        gray_image   = image.convert("L")
+        hist         = gray_image.histogram()
+        total_pixels = sum(hist)
+        dark_pixels  = sum(hist[:20])
+        dark_ratio   = dark_pixels / max(1, total_pixels)
+        logger.info(f"Dark pixel ratio: {dark_ratio:.2f}")
+        return "CT_SCAN" if dark_ratio > 0.40 else "X_RAY"
+
+    # ── Stage 3a: Heuristic fallback (when model not loaded) ──────────────────
+
+    def _heuristic_tumor_probability(self, image: Image.Image, modality: str) -> float:
+        """Legacy heuristic — only used when ML model is not available."""
+        gray_image   = image.convert("L")
+        edges        = gray_image.filter(ImageFilter.FIND_EDGES)
+        hist_edges   = edges.histogram()
+        total_pixels = sum(hist_edges)
+        edge_pixels  = sum(hist_edges[50:])
+        edge_density = edge_pixels / max(1, total_pixels)
+
+        blurred      = gray_image.filter(ImageFilter.GaussianBlur(radius=5))
+        hist_blurred = blurred.histogram()
+        bright_pixels = sum(hist_blurred[150:])
+        bright_density = bright_pixels / max(1, total_pixels)
+
+        anomaly_score = (edge_density * 50) + (bright_density * 100)
+        try:
+            base_prob = 100 / (1 + math.exp(-(anomaly_score - 10) * 0.2))
+        except OverflowError:
+            base_prob = 99.0
+
+        prob = max(10.0, min(base_prob * 1.5, 99.0))
+        if modality == "CT_SCAN":
+            prob = (prob * 0.9) + 5
+        return max(5.0, min(prob, 99.0))
+
+    # ── Public: analyze_image ─────────────────────────────────────────────────
+
+    def analyze_image(self, image_path: str) -> dict:
+        """
+        Full pipeline:
+          1. Validate (reject non-medical)
+          2. Detect modality
+          3. ML inference + Grad-CAM  (falls back to heuristic if model missing)
+
+        Returns:
+            {
+                "is_valid": bool,
+                "error_message": str,
+                "modality": str,
+                "tumor_probability": float,          # 0–100 (for legacy compat)
+                "ml_result": dict | None,            # full ML prediction dict
+            }
+        """
+        logger.info(f"Pipeline analysing: {image_path}")
+
+        try:
+            with Image.open(image_path) as img:
+                img.load()
+                image = img.copy()
+        except Exception as e:
+            logger.error(f"Failed to open image: {e}")
+            return {
+                "is_valid": False,
+                "error_message": "Could not decode image file format.",
+                "modality": "UNKNOWN",
+                "tumor_probability": 0.0,
+                "ml_result": None,
+            }
+
+        # Stage 1
+        if not self._validate_grayscale_medical(image):
+            logger.warning("Image rejected: high colour variance (non-medical photo).")
+            return {
+                "is_valid": False,
+                "error_message": "Selfie/Photo detected! Please upload a valid grayscale X-Ray or CT chest scan.",
+                "modality": "UNKNOWN",
+                "tumor_probability": 0.0,
+                "ml_result": None,
+            }
+
+        # Stage 2
+        modality = self._determine_modality(image)
+        logger.info(f"Modality detected: {modality}")
+
+        # Stage 3 — ML inference
+        if self._predictor is not None and self._predictor._loaded:
+            ml_result = self._predictor.predict(image_path)
+
+            if ml_result.get("success", False):
+                # Convert ML confidence → legacy tumor_probability (0–100)
+                # Sum all dynamically discovered cancer-subtype probabilities
+                class_probs = ml_result.get("probabilities", {})
+                cancer_subtypes = [k for k in class_probs.keys() if k not in ["Normal", "No Cancer"]]
+                cancer_prob = sum(class_probs.get(c, 0.0) for c in cancer_subtypes)
+                tumor_prob  = round(cancer_prob * 100, 1)
+
+                logger.info(f"ML result: {ml_result.get('predicted_subtype', 'Unknown')}  "
+                            f"confidence={ml_result.get('confidence', 0.0):.3f}  "
+                            f"tumor_prob={tumor_prob:.1f}%")
+
+                return {
+                    "is_valid":         True,
+                    "error_message":    "",
+                    "modality":         modality,
+                    "tumor_probability": tumor_prob,
+                    "ml_result":        ml_result,
+                }
+            else:
+                logger.warning(f"ML inference error: {ml_result.get('error')}")
+                # Fall through to heuristic
+
+        # Stage 3 fallback — heuristic
+        logger.info("Using heuristic fallback (model not available).")
+        prob = self._heuristic_tumor_probability(image, modality)
+        return {
+            "is_valid":         True,
+            "error_message":    "",
+            "modality":         modality,
+            "tumor_probability": float(prob),
+            "ml_result":        None,
+        }
+
+
+# ── Singleton ──────────────────────────────────────────────────────────────────
+pipeline = ImagePipeline()

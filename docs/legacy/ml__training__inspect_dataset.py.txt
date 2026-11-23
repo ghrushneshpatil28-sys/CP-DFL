@@ -1,0 +1,169 @@
+"""
+inspect_dataset.py  —  Inspect the 4-class pre-split lung cancer image dataset.
+
+Run:
+    python ml/training/inspect_dataset.py
+
+Reports:
+  - Classes found per split
+  - Image count per class
+  - Corrupt / unreadable files (and optional removal)
+  - Class balance summary
+"""
+
+import os
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+
+from PIL import Image
+
+from ml.utils.config import (
+    TRAIN_DIR, VALID_DIR, TEST_DIR,
+    FOLDER_TO_LABEL, CLASS_NAMES, PROCESSED_DIR, CLASS_REPORT_TXT
+)
+
+VALID_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif"}
+
+
+def _resolve_label(folder_name: str) -> str:
+    """Map folder name → canonical class label. Uses prefix matching."""
+    if folder_name in FOLDER_TO_LABEL:
+        return FOLDER_TO_LABEL[folder_name]
+    # Prefix match for long names
+    for key, label in FOLDER_TO_LABEL.items():
+        if folder_name.startswith(key) or key.startswith(folder_name):
+            return label
+    return None  # unrecognised
+
+
+def inspect_split(split_name: str, split_dir: str) -> dict:
+    """Inspect a single split directory. Returns stats dict."""
+    print(f"\n{'='*55}")
+    print(f"  Split: {split_name.upper()}  →  {split_dir}")
+    print(f"{'='*55}")
+
+    if not os.path.isdir(split_dir):
+        print(f"  [WARN] Directory not found: {split_dir}")
+        return {}
+
+    stats = {}          # label → {"valid": int, "corrupt": int}
+    unrecognised = []
+
+    for folder in sorted(os.listdir(split_dir)):
+        folder_path = os.path.join(split_dir, folder)
+        if not os.path.isdir(folder_path):
+            continue
+
+        label = _resolve_label(folder)
+        if label is None:
+            unrecognised.append(folder)
+            print(f"  [SKIP] Unrecognised folder: {folder}")
+            continue
+
+        if label not in stats:
+            stats[label] = {"valid": 0, "corrupt": 0, "files": []}
+
+        all_files = [
+            f for f in os.listdir(folder_path)
+            if os.path.splitext(f)[1].lower() in VALID_EXTENSIONS
+        ]
+
+        valid_count   = 0
+        corrupt_count = 0
+        for fname in all_files:
+            fpath = os.path.join(folder_path, fname)
+            try:
+                with Image.open(fpath) as img:
+                    img.verify()
+                stats[label]["valid"] += 1
+                stats[label]["files"].append(fpath)
+                valid_count += 1
+            except Exception:
+                stats[label]["corrupt"] += 1
+                corrupt_count += 1
+                print(f"    [CORRUPT] {fname}")
+
+        print(f"  {label:30s}  folder={folder[:30]:<30}  valid={valid_count:4d}  corrupt={corrupt_count}")
+
+    total_valid   = sum(v["valid"]   for v in stats.values())
+    total_corrupt = sum(v["corrupt"] for v in stats.values())
+    print(f"\n  Total valid  : {total_valid}")
+    print(f"  Total corrupt: {total_corrupt}")
+    if unrecognised:
+        print(f"  Unrecognised folders: {unrecognised}")
+
+    return stats
+
+
+def print_summary(all_stats: dict):
+    """Print cross-split class balance summary."""
+    print(f"\n{'='*55}")
+    print("  DATASET SUMMARY (All Splits)")
+    print(f"{'='*55}")
+    print(f"  {'Class':30s} {'Train':>8} {'Valid':>8} {'Test':>8} {'Total':>8}")
+    print(f"  {'-'*30} {'-'*8} {'-'*8} {'-'*8} {'-'*8}")
+
+    grand_total = 0
+    for cls in CLASS_NAMES:
+        tr = all_stats.get("train", {}).get(cls, {}).get("valid", 0)
+        va = all_stats.get("valid", {}).get(cls, {}).get("valid", 0)
+        te = all_stats.get("test",  {}).get(cls, {}).get("valid", 0)
+        tot = tr + va + te
+        grand_total += tot
+        print(f"  {cls:30s} {tr:>8} {va:>8} {te:>8} {tot:>8}")
+
+    print(f"  {'TOTAL':30s} "
+          f"{sum(all_stats.get('train',{}).get(c,{}).get('valid',0) for c in CLASS_NAMES):>8} "
+          f"{sum(all_stats.get('valid',{}).get(c,{}).get('valid',0) for c in CLASS_NAMES):>8} "
+          f"{sum(all_stats.get('test',{}).get(c,{}).get('valid',0)  for c in CLASS_NAMES):>8} "
+          f"{grand_total:>8}")
+
+
+def save_report(all_stats: dict):
+    """Save distribution report to processed/ folder."""
+    os.makedirs(PROCESSED_DIR, exist_ok=True)
+
+    lines = [
+        "4-Class Lung Cancer Dataset Report",
+        "=" * 50,
+        "",
+        "Classes:",
+    ]
+    for c in CLASS_NAMES:
+        lines.append(f"  {c}")
+    lines.append("")
+
+    for split in ["train", "valid", "test"]:
+        s = all_stats.get(split, {})
+        lines.append(f"{split.upper()} SPLIT:")
+        for cls in CLASS_NAMES:
+            cnt = s.get(cls, {}).get("valid", 0)
+            lines.append(f"  {cls}: {cnt}")
+        lines.append("")
+
+    with open(CLASS_REPORT_TXT, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+
+    print(f"\n  Report saved → {CLASS_REPORT_TXT}")
+
+
+def main():
+    print("=" * 55)
+    print("  Lung Cancer Dataset Inspector  (4-Class)")
+    print("=" * 55)
+    print(f"  Expected classes: {CLASS_NAMES}")
+
+    all_stats = {}
+    for split_name, split_dir in [("train", TRAIN_DIR), ("valid", VALID_DIR), ("test", TEST_DIR)]:
+        all_stats[split_name] = inspect_split(split_name, split_dir)
+
+    print_summary(all_stats)
+    save_report(all_stats)
+
+    print("\n  Inspection complete.")
+    print("  Next step: python ml/training/train_image_4class.py")
+
+
+if __name__ == "__main__":
+    main()

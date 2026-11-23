@@ -1,0 +1,53 @@
+Improved 4-Class Lung Cancer — Training Report
+=======================================================
+
+ROOT CAUSES FIXED:
+  1. Merged train+valid (685) → 80/20 stratified re-split
+     → Validation set: 72 → 137 (more reliable early stopping)
+  2. Class-weighted loss (balanced) → penalises hard classes more
+  3. Label smoothing 0.1 → better generalisation
+  4. Removed HorizontalFlip (invalid for CT anatomical axis)
+     Added: RandomAffine, GaussianBlur, RandomErasing
+  5. Unfreeze last 4 backbone blocks (was 2) → more task-specific
+  6. Head: +BatchNorm layer between Linear layers
+  7. CosineAnnealingLR (was ReduceLROnPlateau)
+  8. Gradient clipping (1.0)
+  9. Optimise on macro-F1, not loss
+
+BASELINE:
+  Test Accuracy : 65.4%
+  Macro F1      : 68.9%
+
+RESULTS:
+
+  MOBILENETV2:
+    Test Accuracy : 0.7365  (73.7%)
+    Test F1 Macro : 0.7529
+    Val  F1 Macro : 0.8110
+
+  Classification Report:
+                         precision    recall  f1-score   support
+
+              No Cancer     0.9815    0.9815    0.9815        54
+         Adenocarcinoma     0.7273    0.7333    0.7303       120
+   Large Cell Carcinoma     0.5610    0.9020    0.6917        51
+Squamous Cell Carcinoma     0.7759    0.5000    0.6081        90
+
+               accuracy                         0.7365       315
+              macro avg     0.7614    0.7792    0.7529       315
+           weighted avg     0.7578    0.7365    0.7322       315
+
+  Confusion Matrix:
+[[53  1  0  0]
+ [ 0 88 21 11]
+ [ 0  3 46  2]
+ [ 1 29 15 45]]
+
+BEST MODEL: MOBILENETV2
+  Test Accuracy: 73.7%
+  Macro F1    : 0.7529
+
+NOTE: Realistic ceiling for this dataset (~685 unique training images,
+      4-class CT subtype classification) is approximately 72-82%.
+      Adenocarcinoma vs Squamous Cell confusion is a genuine
+      radiological challenge even for trained physicians.

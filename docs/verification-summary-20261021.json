@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-21",
+  "backend": {
+    "passed": 42,
+    "failed": 0,
+    "warnings": 0,
+    "seconds": 238.91,
+    "runs": [
+      "41 tests in full suite",
+      "1 subsequently added encrypted-share tamper test"
+    ]
+  },
+  "browser": {
+    "passed": 6,
+    "failed": 0,
+    "runs": [
+      "6-test full browser suite",
+      "populated secure ledger targeted rerun passed"
+    ]
+  },
+  "frontend_build": "passed",
+  "frontend_lint": "passed",
+  "npm_vulnerabilities": 0,
+  "pip_check": "passed",
+  "manifest_repeat": "exact SHA-256 match",
+  "secure_aggregation": {
+    "status": "Implemented / local",
+    "protocol": "Flower SecAgg+ / ChaCha20-HKDF v1",
+    "scope": "semi-honest non-colluding coordinator; shared host excluded",
+    "registered_clients": 3,
+    "minimum_contributors": 2,
+    "reconstruction_threshold": 2,
+    "verification_experiment": "secagg-verification",
+    "full_data_rounds": 1,
+    "protocol_bytes": 402499977,
+    "live_authenticated_endpoint": "verified"
+  },
+  "clinical_validation": "not established",
+  "patient_independence": "unverified; metadata unavailable",
+  "heuristic_checklist": {
+    "passed": 6,
+    "failed": 0,
+    "report": "docs/checks-after-fixes.log",
+    "reason": "Scoped source scanning, actual pytest execution, explicit requested palette policy; see IMPLEMENTATION.md"
+  },
+  "local_launcher": "ready; API, worker and frontend running",
+  "operator_accounts": {
+    "admin": 1,
+    "doctor": 5,
+    "all_logins_verified": true
+  }
+}

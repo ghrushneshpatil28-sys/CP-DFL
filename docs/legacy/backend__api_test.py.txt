@@ -1,0 +1,49 @@
+import requests
+import json
+import os
+
+print("--- Testing FastAPI ML Integration ---")
+
+# 1. Health check
+res = requests.get('http://localhost:8000/api/health')
+print("Health:", res.json())
+
+# 2. Prediction request with an image and clinical data
+payload = {
+    "age": 60,
+    "gender": "Male",
+    "smoking_history": "Current",
+    "cigarettes_per_day": 20,
+    "years_smoking": 30,
+    "family_history": True,
+    "symptoms": {
+        "chronic cough": "Severe",
+        "coughing up blood": "Severe"
+    },
+    "daily_mouth_intake": {
+        "tobacco": "Daily",
+        "alcohol": "Daily"
+    }
+}
+
+image_path = os.path.join(os.path.dirname(__file__), "test_valid.jpg")
+
+with open(image_path, "rb") as f:
+    files = {"image": ("test_valid.jpg", f, "image/jpeg")}
+    data = {"data": json.dumps(payload)}
+    
+    res = requests.post('http://localhost:8000/api/predict', data=data, files=files)
+    
+print(f"Predict Status: {res.status_code}")
+if res.status_code == 200:
+    data = res.json()
+    print("Cancer Type:", data.get("cancer_type"))
+    print("Confidence :", data.get("confidence"))
+    print("Class Probs:", data.get("class_probabilities"))
+    print("Modality   :", data.get("modality"))
+    print("Heatmap URL:", data.get("heatmap_url"))
+    print("\nExplanation:")
+    for ext in data.get("explanation", []):
+         print(" -", ext)
+else:
+    print("Error:", res.text)

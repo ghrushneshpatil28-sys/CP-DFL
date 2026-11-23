@@ -1,0 +1,159 @@
+{
+  "date": "2026-11-16",
+  "selected_model": "centralized-transfer-224-20261116",
+  "checkpoint_sha256": "7033a401bde3b63035773c489eeac4a3b4891afdbb4af93093cc972432d88fd1",
+  "manifest_sha256": "7b4e01e5e73fbbcb9d7714317246c9f11204a4e81e974f51e4112788e0681ffd",
+  "previous_accuracy": 0.7567567567567568,
+  "test": {
+    "accuracy": 0.9279279279279279,
+    "balanced_accuracy": 0.939635077566112,
+    "macro_precision": 0.9131467490842491,
+    "macro_recall": 0.939635077566112,
+    "macro_f1": 0.9243712427922954,
+    "per_class": {
+      "Adenocarcinoma": {
+        "sensitivity": 0.8787878787878788,
+        "specificity": 0.9615384615384616,
+        "support": 33
+      },
+      "Large Cell Carcinoma": {
+        "sensitivity": 0.9310344827586207,
+        "specificity": 0.9878048780487805,
+        "support": 29
+      },
+      "No Cancer": {
+        "sensitivity": 1.0,
+        "specificity": 0.9801980198019802,
+        "support": 10
+      },
+      "Squamous Cell Carcinoma": {
+        "sensitivity": 0.9487179487179487,
+        "specificity": 0.9722222222222222,
+        "support": 39
+      }
+    },
+    "confusion_matrix": [
+      [
+        29,
+        1,
+        1,
+        2
+      ],
+      [
+        2,
+        27,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        10,
+        0
+      ],
+      [
+        1,
+        0,
+        1,
+        37
+      ]
+    ],
+    "roc_auc": 0.9901819117426397,
+    "sample_count": 111,
+    "loss": 0.24804656763837948,
+    "inference_ms_per_image": 55.24922162163289
+  },
+  "correct": 103,
+  "best_epoch": 15,
+  "epochs_completed": 20,
+  "best_validation": {
+    "accuracy": 0.9727272727272728,
+    "balanced_accuracy": 0.9759199134199135,
+    "macro_precision": 0.9632102272727273,
+    "macro_recall": 0.9759199134199135,
+    "macro_f1": 0.9688467650492967,
+    "per_class": {
+      "Adenocarcinoma": {
+        "sensitivity": 0.9393939393939394,
+        "specificity": 0.987012987012987,
+        "support": 33
+      },
+      "Large Cell Carcinoma": {
+        "sensitivity": 0.9642857142857143,
+        "specificity": 1.0,
+        "support": 28
+      },
+      "No Cancer": {
+        "sensitivity": 1.0,
+        "specificity": 0.99,
+        "support": 10
+      },
+      "Squamous Cell Carcinoma": {
+        "sensitivity": 1.0,
+        "specificity": 0.9859154929577465,
+        "support": 39
+      }
+    },
+    "confusion_matrix": [
+      [
+        31,
+        0,
+        1,
+        1
+      ],
+      [
+        1,
+        27,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        10,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        39
+      ]
+    ],
+    "roc_auc": 0.9995056702949571,
+    "sample_count": 110,
+    "loss": 0.061819075486114754,
+    "inference_ms_per_image": 40.56290454550022
+  },
+  "configuration": {
+    "algorithm": "centralized",
+    "rounds": 20,
+    "local_epochs": 1,
+    "batch_size": 8,
+    "image_size": 224,
+    "learning_rate": 0.0001,
+    "optimizer": "adam",
+    "seed": 42,
+    "alpha": 0.5,
+    "mu": 0.01,
+    "patience": 6,
+    "pretrained": true,
+    "secure_aggregation": false,
+    "dp": {
+      "enabled": false,
+      "delta": 1e-05,
+      "noise_multiplier": 1.1,
+      "max_grad_norm": 1.0,
+      "target_epsilon": null
+    },
+    "manifest": "F:\\DFL-CP\\ml\\data\\manifest.json",
+    "threads": 4
+  },
+  "target_accuracy": 0.85,
+  "target_met": true,
+  "selection": "Highest validation macro F1; one final test evaluation after selection. No score flooring or test-based retry.",
+  "training_seconds": 2523.401594200004,
+  "old_checkpoint_preserved": "ml/outputs/experiments/centralized-verification/best.pt",
+  "limitations": "Measured on a previously used research test split; patient independence and external clinical validity remain unverified.",
+  "privacy": "Centralized BatchNorm ResNet18; DP and secure aggregation disabled for this run. Existing federated experiment scores are unchanged."
+}

@@ -1,0 +1,88 @@
+import os
+import hashlib
+import shutil
+
+BASE_DIR = r"d:\COLLEGE\SEM-4\EDI-2\New folder\lung_cancer_detection\backend\DataSet"
+SPLITS = ["test", "valid", "train"] # Test first! So duplicate hashes in Train get deleted!
+
+RENAME_MAP = {
+    "adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib".lower(): "Adenocarcinoma",
+    "large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa".lower(): "Large Cell Carcinoma",
+    "squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa".lower(): "Squamous Cell Carcinoma",
+    "normal".lower(): "No Cancer",
+    "adenocarcinoma".lower(): "Adenocarcinoma",
+    "large.cell.carcinoma".lower(): "Large Cell Carcinoma",
+    "squamous.cell.carcinoma".lower(): "Squamous Cell Carcinoma",
+    "no cancer": "No Cancer"
+}
+
+def compute_hash(filepath):
+    hasher = hashlib.md5()
+    try:
+        with open(filepath, 'rb') as afile:
+            buf = afile.read()
+            hasher.update(buf)
+        return hasher.hexdigest()
+    except Exception:
+        return None
+
+def clean_and_standardize():
+    global_hashes = set()
+    deleted_count = 0
+
+    for split in SPLITS:
+        split_dir = os.path.join(BASE_DIR, split)
+        if not os.path.exists(split_dir):
+            continue
+
+        for folder in os.listdir(split_dir):
+            class_dir = os.path.join(split_dir, folder)
+            if not os.path.isdir(class_dir):
+                continue
+            
+            standard_name = RENAME_MAP.get(folder.lower(), folder)
+            target_class_dir = os.path.join(split_dir, standard_name)
+            
+            if class_dir.lower() != target_class_dir.lower():
+                if not os.path.exists(target_class_dir):
+                    os.rename(class_dir, target_class_dir)
+                    print(f"Renamed {folder} -> {standard_name}")
+                else:
+                    for f in os.listdir(class_dir):
+                        src = os.path.join(class_dir, f)
+                        dst = os.path.join(target_class_dir, f)
+                        if not os.path.exists(dst):
+                            shutil.move(src, dst)
+                    shutil.rmtree(class_dir, ignore_errors=True)
+                    print(f"Merged {folder} into {standard_name}")
+            else:
+                # Same name case-insensitively, just rename to correct case if needed
+                if folder != standard_name:
+                    temp_name = class_dir + "_temp"
+                    os.rename(class_dir, temp_name)
+                    os.rename(temp_name, target_class_dir)
+                    print(f"Fixed case {folder} -> {standard_name}")
+            
+            class_dir = target_class_dir # update working dir
+
+            # Now scrub duplicates
+            if os.path.exists(class_dir):
+                for f in os.listdir(class_dir):
+                    filepath = os.path.join(class_dir, f)
+                    file_hash = compute_hash(filepath)
+                    
+                    if not file_hash:
+                        continue
+                    
+                    if file_hash in global_hashes:
+                        os.remove(filepath)
+                        deleted_count += 1
+                    else:
+                        global_hashes.add(file_hash)
+
+    print(f"\nCleaning Complete.")
+    print(f"Deleted Duplicates: {deleted_count}")
+
+if __name__ == "__main__":
+    print("Starting dataset cleanup...")
+    clean_and_standardize()

@@ -1,0 +1,21 @@
+{
+  "class_names": [
+    "Adenocarcinoma",
+    "Large Cell Carcinoma",
+    "No Cancer",
+    "Squamous Cell Carcinoma"
+  ],
+  "class_to_idx": {
+    "adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib": 0,
+    "large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa": 1,
+    "normal": 2,
+    "squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa": 3
+  },
+  "idx_to_class": {
+    "0": "Adenocarcinoma",
+    "1": "Large Cell Carcinoma",
+    "2": "No Cancer",
+    "3": "Squamous Cell Carcinoma"
+  },
+  "num_classes": 4
+}

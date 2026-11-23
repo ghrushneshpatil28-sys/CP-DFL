@@ -1,0 +1,158 @@
+"""
+prepare_dataset.py  —  Dataset inspection, cleaning, and train/val/test split.
+
+Run this FIRST before training:
+    python ml/training/prepare_dataset.py
+
+Outputs:
+    ml/data/processed/dataset_manifest.csv   (path, class_name, split)
+    ml/data/processed/class_distribution.txt (count summary)
+"""
+
+import os
+import sys
+import csv
+import random
+import shutil
+
+# Allow imports from project root
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+from ml.utils.config import (
+    RAW_DATASET_DIR, MANIFEST_CSV, CLASS_REPORT_TXT,
+    FOLDER_TO_LABEL, TRAIN_SPLIT, VAL_SPLIT, RANDOM_SEED, PROCESSED_DIR
+)
+
+VALID_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif"}
+
+def is_valid_image(path: str) -> bool:
+    """Try to open and verify an image is readable."""
+    try:
+        from PIL import Image
+        with Image.open(path) as img:
+            img.verify()
+        return True
+    except Exception:
+        return False
+
+def prepare():
+    random.seed(RANDOM_SEED)
+    os.makedirs(PROCESSED_DIR, exist_ok=True)
+
+    print("=" * 60)
+    print("  Lung Cancer Dataset Preparation")
+    print("=" * 60)
+    print(f"  Source: {RAW_DATASET_DIR}")
+    print()
+
+    if not os.path.isdir(RAW_DATASET_DIR):
+        print(f"[ERROR] Dataset directory not found: {RAW_DATASET_DIR}")
+        sys.exit(1)
+
+    all_records = []   # list of (abs_path, class_name)
+    class_counts = {}
+    rejected = 0
+
+    for folder_name, class_label in FOLDER_TO_LABEL.items():
+        folder_path = os.path.join(RAW_DATASET_DIR, folder_name)
+        if not os.path.isdir(folder_path):
+            print(f"[WARN] Folder not found, skipping: {folder_path}")
+            continue
+
+        files = [f for f in os.listdir(folder_path)
+                 if os.path.splitext(f)[1].lower() in VALID_EXTENSIONS]
+
+        print(f"  Scanning [{folder_name}] → '{class_label}' ...")
+        valid_in_class = []
+
+        for fname in files:
+            fpath = os.path.join(folder_path, fname)
+            if is_valid_image(fpath):
+                valid_in_class.append((fpath, class_label))
+            else:
+                print(f"    [SKIP] Corrupt/unreadable: {fname}")
+                rejected += 1
+
+        class_counts[class_label] = len(valid_in_class)
+        all_records.extend(valid_in_class)
+        print(f"    ✓  Valid images: {len(valid_in_class)}  (rejected: {rejected})")
+
+    total = len(all_records)
+    print(f"\n  Total valid images: {total}")
+    print(f"  Total rejected:     {rejected}")
+    print()
+
+    # ── Stratified split ────────────────────────────────────────────────────────
+    # Group by class then split each independently for balance
+    from collections import defaultdict
+    by_class = defaultdict(list)
+    for (path, label) in all_records:
+        by_class[label].append(path)
+
+    manifest_rows = []
+    split_counts = {"train": 0, "val": 0, "test": 0}
+
+    for class_label, paths in by_class.items():
+        random.shuffle(paths)
+        n = len(paths)
+        n_train = int(n * TRAIN_SPLIT)
+        n_val   = int(n * VAL_SPLIT)
+
+        train_paths = paths[:n_train]
+        val_paths   = paths[n_train:n_train + n_val]
+        test_paths  = paths[n_train + n_val:]
+
+        for p in train_paths: manifest_rows.append((p, class_label, "train"))
+        for p in val_paths:   manifest_rows.append((p, class_label, "val"))
+        for p in test_paths:  manifest_rows.append((p, class_label, "test"))
+
+        split_counts["train"] += len(train_paths)
+        split_counts["val"]   += len(val_paths)
+        split_counts["test"]  += len(test_paths)
+
+        print(f"  {class_label:20s}  train={len(train_paths)}  val={len(val_paths)}  test={len(test_paths)}")
+
+    # Save manifest CSV
+    manifest_rows_shuffled = manifest_rows[:]
+    random.shuffle(manifest_rows_shuffled)
+
+    with open(MANIFEST_CSV, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["path", "class_name", "split"])
+        writer.writerows(manifest_rows_shuffled)
+
+    print(f"\n  Manifest saved → {MANIFEST_CSV}")
+
+    # Save class distribution report
+    report_lines = [
+        "Class Distribution Report",
+        "=" * 40,
+        f"Total images : {total}",
+        f"Rejected     : {rejected}",
+        "",
+        "Per-class counts:",
+    ]
+    for cls, cnt in class_counts.items():
+        report_lines.append(f"  {cls}: {cnt}")
+
+    report_lines += [
+        "",
+        "Split totals:",
+        f"  train : {split_counts['train']}",
+        f"  val   : {split_counts['val']}",
+        f"  test  : {split_counts['test']}",
+        "",
+        "NOTE: This dataset has 3 classes (Normal/Benign/Malignant).",
+        "      Cancer subtype (Adenocarcinoma/SCC/LCC) labels are NOT available.",
+        "      See ml/README.md for details.",
+    ]
+
+    with open(CLASS_REPORT_TXT, "w", encoding="utf-8") as f:
+        f.write("\n".join(report_lines))
+
+    print(f"  Report saved  → {CLASS_REPORT_TXT}")
+    print("\n  Dataset preparation complete!")
+    print("=" * 60)
+
+
+if __name__ == "__main__":
+    prepare()

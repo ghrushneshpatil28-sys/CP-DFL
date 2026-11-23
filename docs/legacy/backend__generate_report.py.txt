@@ -1,0 +1,69 @@
+import docx
+from docx.shared import Pt, Inches
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+
+def main():
+    doc = docx.Document()
+    
+    # Title
+    title = doc.add_heading('Project Report: Lung Cancer Early Detection Platform', 0)
+    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    
+    doc.add_paragraph('This document outlines the detailed information regarding the development, tools, libraries, and logic implemented in our lung cancer detection project.')
+    
+    # Section 1
+    doc.add_heading('1. Project Overview & Objectives', level=1)
+    p = doc.add_paragraph('The primary objective was to develop a highly accurate, robust, and lightweight application designed for detecting lung cancer risks. It combines both clinical inputs (like patient demographics, symptoms, and habits) and medical imaging (X-Ray/CT scans) to output a highly descriptive and structured risk assessment.')
+    
+    # Section 2
+    doc.add_heading('2. Architecture & Tech Stack', level=1)
+    
+    doc.add_heading('Frontend (Client-Side)', level=2)
+    doc.add_paragraph('The frontend web application was engineered for visual excellence, modern aesthetics, and seamless state management. Built with:', style='List Bullet')
+    doc.add_paragraph('React (v19): The core UI library used for component-based architecture (App.jsx, Form.jsx, Results.jsx).', style='List Bullet 2')
+    doc.add_paragraph('Vite: Chosen as the ultra-fast frontend build tool and development server.', style='List Bullet 2')
+    doc.add_paragraph('Lucide-React: Provides modern, scalable vector icons (e.g., Activity, ShieldAlert) to improve user interface intuitiveness.', style='List Bullet 2')
+    doc.add_paragraph('Styling: Features premium \"glassmorphism\" designs, micro-animations, color gradients, and fully responsive layouts implemented without bloated frameworks.', style='List Bullet 2')
+
+    doc.add_heading('Backend (API & Server)', level=2)
+    doc.add_paragraph('The server was built to be lightning block-free, asynchronous, and reliable. Powered by:', style='List Bullet')
+    doc.add_paragraph('FastAPI: A modern, high-performance web framework for Python handling routing and API development (/api/predict).', style='List Bullet 2')
+    doc.add_paragraph('Uvicorn: Lightning-fast ASGI web server hosting the FastAPI application locally.', style='List Bullet 2')
+    doc.add_paragraph('Pydantic: Ensures strict data validation matching frontend requests inside schemas.py.', style='List Bullet 2')
+    doc.add_paragraph('Python-Multipart & HTTPX: Handles simultaneous multi-part file uploads (images) and JSON string bodies natively.', style='List Bullet 2')
+
+    doc.add_heading('Machine Learning & Image Pipeline', level=2)
+    doc.add_paragraph('Instead of bloated Neural Network libraries that are incredibly slow on CPU-bound machines, we designed a heavily optimized, heuristic-based pipeline. Uses:', style='List Bullet')
+    doc.add_paragraph('Pillow (PIL): Native Python image library utilized explicitly to read, inspect, and augment image pixels logically without heavy hardware requirements.', style='List Bullet 2')
+    doc.add_paragraph('Deterministic Mathematical Math: Custom built sigmoid and linear mappings implemented to emulate anomaly scoring.', style='List Bullet 2')
+
+    # Section 3
+    doc.add_heading('3. Core Features Implemented', level=1)
+    
+    doc.add_heading('A. Strict Medical Image Validation', level=2)
+    doc.add_paragraph('The platform performs multi-stage security checks before parsing an image. Utilizing Pillow\'s ImageStat module, the system mathematically calculates the color variance of the uploaded image. High variance triggers a \"Selfie/Photo Rejection\" ensuring only valid grayscale X-Rays/CT Scans process through the system.')
+    
+    doc.add_heading('B. Smart Modality Detection', level=2)
+    doc.add_paragraph('Automatically differentiates between X-Ray and CT scans by inspecting the \"dark pixel ratio\". CT scans contain vast amounts of background air (pure dark background) while X-Rays are denser. The pipeline determines this dynamically and re-weights anomaly scores.')
+
+    doc.add_heading('C. Clinical Data Fusion Engine', level=2)
+    doc.add_paragraph('The ml_service.py evaluates inputs mathematically by assigning conditional Risk Factor Multipliers based on:', style='List Bullet')
+    doc.add_paragraph('Age triggers demographic penalties (>40, >50).', style='List Bullet 2')
+    doc.add_paragraph('Smoking metrics (current/former vs none, years active, count per day).', style='List Bullet 2')
+    doc.add_paragraph('Mouth intakes (Tobacco, Betel Nut, Alcohol, Hot Beverages) linked specifically to respiratory lesions modified by frequency modifiers (Daily, Frequent, Occasional).', style='List Bullet 2')
+    doc.add_paragraph('Symptoms mapped via Severity (Coughing blood vs chronic cough).', style='List Bullet 2')
+
+    doc.add_heading('D. Final Explicit Diagnosis', level=2)
+    doc.add_paragraph('Fuses 80% weight of the visual Anomalous Density Score with 20% Clinical Risk Factor to output a distinct [Yes] / [No] / [Inconclusive] diagnosis accompanied by a concrete percentile and targeted doctor recommendations.')
+
+    # Delivery & Operations
+    doc.add_heading('4. Development Operations', level=1)
+    doc.add_paragraph('Both the client and server act asynchronously over standard REST interfaces mapped tightly across localhost domains (5173 - React, 8000 - FastAPI) connected via CORSMiddleware. Complete fault tolerance is established capturing missing fields, corrupt images, or incorrect formats before failure safely propagating error descriptions to the frontend visual cards.')
+    
+    # Save the file
+    doc_path = r"c:\Users\Lalit More\OneDrive\Desktop\coding\sy_edi_ws\lung_cancer_detection\Project_Details_Report.docx"
+    doc.save(doc_path)
+    print(f"Document saved successfully to {doc_path}")
+
+if __name__ == '__main__':
+    main()

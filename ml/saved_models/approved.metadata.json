@@ -1,0 +1,63 @@
+{
+  "architecture": "ResNet18",
+  "classes": [
+    "Adenocarcinoma",
+    "Large Cell Carcinoma",
+    "No Cancer",
+    "Squamous Cell Carcinoma"
+  ],
+  "class_to_idx": {
+    "Adenocarcinoma": 0,
+    "Large Cell Carcinoma": 1,
+    "No Cancer": 2,
+    "Squamous Cell Carcinoma": 3
+  },
+  "preprocessing": {
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "resize": "square",
+    "interpolation": "bilinear",
+    "color_mode": "RGB"
+  },
+  "normalization": "batchnorm",
+  "manifest_sha256": "7b4e01e5e73fbbcb9d7714317246c9f11204a4e81e974f51e4112788e0681ffd",
+  "validation_scope": "provisional image-group split; patient independence unverified",
+  "version": "centralized-transfer-224-20261116",
+  "algorithm": "centralized",
+  "research_only": true,
+  "training_config": {
+    "algorithm": "centralized",
+    "rounds": 20,
+    "local_epochs": 1,
+    "batch_size": 8,
+    "image_size": 224,
+    "learning_rate": 0.0001,
+    "optimizer": "adam",
+    "seed": 42,
+    "alpha": 0.5,
+    "mu": 0.01,
+    "patience": 6,
+    "pretrained": true,
+    "secure_aggregation": false,
+    "dp": {
+      "enabled": false,
+      "delta": 1e-05,
+      "noise_multiplier": 1.1,
+      "max_grad_norm": 1.0,
+      "target_epsilon": null
+    },
+    "manifest": "F:\\DFL-CP\\ml\\data\\manifest.json",
+    "threads": 4
+  },
+  "privacy_randomness": null,
+  "best_round": 15
+}

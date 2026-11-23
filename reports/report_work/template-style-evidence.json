@@ -1,0 +1,168 @@
+{
+  "input": "F:\\DFL-CP\\reports\\report_work\\reference.docx",
+  "fonts_by_char_count": {},
+  "direct_run_formatting_runs": 272,
+  "direct_paragraph_formatting_paragraphs": 622,
+  "heading_like_paragraphs_not_heading_style": [
+    {
+      "para_index": 6,
+      "text": "BACHELOR OF TECHNOLOGY IN",
+      "style": "Normal"
+    },
+    {
+      "para_index": 8,
+      "text": "\u201cComputer Science & Engineering ",
+      "style": "Normal"
+    },
+    {
+      "para_index": 9,
+      "text": "(Artificial Intelligence)\u201d",
+      "style": "Normal"
+    },
+    {
+      "para_index": 11,
+      "text": " OF",
+      "style": "Normal"
+    },
+    {
+      "para_index": 12,
+      "text": "VISHWAKARMA INSTITUTE OF TECHNOLOGY",
+      "style": "Normal"
+    },
+    {
+      "para_index": 15,
+      "text": "Disha Gupta(12414163)",
+      "style": "Normal"
+    },
+    {
+      "para_index": 16,
+      "text": "Meetal Gaikwad(12410509)",
+      "style": "Normal"
+    },
+    {
+      "para_index": 17,
+      "text": "Anuj Gardi(12411308)",
+      "style": "Normal"
+    },
+    {
+      "para_index": 18,
+      "text": "Harshal Ramteke(12412909)",
+      "style": "Normal"
+    },
+    {
+      "para_index": 20,
+      "text": "Prof. Jayshree Bedade",
+      "style": "Normal"
+    },
+    {
+      "para_index": 22,
+      "text": "DEPARTMENT OF COMPUTER SCIENCE & ENGINEERING",
+      "style": "Normal"
+    },
+    {
+      "para_index": 23,
+      "text": "(ARTIFICIAL INTELLIGANCE )",
+      "style": "Normal"
+    },
+    {
+      "para_index": 24,
+      "text": "BANSILAL RAMNATH AGARWAL CHARITABLE TRUST\u2019S",
+      "style": "Normal"
+    },
+    {
+      "para_index": 25,
+      "text": "VISHWAKARMA INSTITUTE OF TECHNOLOGY",
+      "style": "Normal"
+    },
+    {
+      "para_index": 26,
+      "text": "(An Autonomous Institute affiliated to Savitribai Phule Pune University)",
+      "style": "Normal"
+    },
+    {
+      "para_index": 29,
+      "text": "BANSILAL RAMNATH AGARWAL CHARITABLE TRUST\u2019S",
+      "style": "Normal"
+    },
+    {
+      "para_index": 31,
+      "text": "(An Autonomous Institute affiliated to Savitribai Phule Pune University)",
+      "style": "Normal"
+    },
+    {
+      "para_index": 34,
+      "text": "CERTIFICATE",
+      "style": "Normal"
+    },
+    {
+      "para_index": 38,
+      "text": "Prof.Jayshree Bedade\t\t\t\t               Prof. Dr. Nilesh P.Sable",
+      "style": "Normal"
+    },
+    {
+      "para_index": 50,
+      "text": "                                    ACKNOWLEDGEMENT",
+      "style": "Normal"
+    }
+  ],
+  "examples": {
+    "direct_paragraph_formatting": [
+      {
+        "para_index": 2,
+        "text": " A Course Project Report ",
+        "style": "Normal"
+      },
+      {
+        "para_index": 3,
+        "text": "on ",
+        "style": "Normal"
+      },
+      {
+        "para_index": 4,
+        "text": "\u201cSemantic Vectorization & Federated Graph Learning Formulti-Modal Iot Anomaly Detection In Smart Hospitals\u201d",
+        "style": "Normal"
+      },
+      {
+        "para_index": 5,
+        "text": "SUBMITTED IN PARTIAL FULFILLMENT OF THE REQUIREMENTS FOR THE DEGREE OF",
+        "style": "Normal"
+      },
+      {
+        "para_index": 6,
+        "text": "BACHELOR OF TECHNOLOGY IN",
+        "style": "Normal"
+      }
+    ],
+    "direct_run_formatting": [
+      {
+        "para_index": 2,
+        "run_text": " A Course Project ",
+        "style": "Normal"
+      },
+      {
+        "para_index": 2,
+        "run_text": "Report",
+        "style": "Normal"
+      },
+      {
+        "para_index": 2,
+        "run_text": " ",
+        "style": "Normal"
+      },
+      {
+        "para_index": 3,
+        "run_text": "on",
+        "style": "Normal"
+      },
+      {
+        "para_index": 3,
+        "run_text": " ",
+        "style": "Normal"
+      }
+    ]
+  },
+  "notes": [
+    "Direct formatting is not always wrong, but it often causes inconsistent output when templates change.",
+    "Heading-like paragraphs not using Heading styles can break TOC and accessibility."
+  ]
+}

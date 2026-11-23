@@ -1,0 +1,103 @@
+[
+  {
+    "file": "ml/saved_models/image_model_best.pth",
+    "legacy": true,
+    "embedded_classes": [
+      "No Cancer",
+      "Adenocarcinoma",
+      "Large Cell Carcinoma",
+      "Squamous Cell Carcinoma"
+    ],
+    "embedded_arch": "mobilenetv2",
+    "keys": 321,
+    "head_shapes": {
+      "classifier.1.weight": [
+        512,
+        1280
+      ],
+      "classifier.1.bias": [
+        512
+      ],
+      "classifier.2.weight": [
+        512
+      ],
+      "classifier.2.bias": [
+        512
+      ],
+      "classifier.2.running_mean": [
+        512
+      ],
+      "classifier.2.running_var": [
+        512
+      ],
+      "classifier.2.num_batches_tracked": [],
+      "classifier.5.weight": [
+        4,
+        512
+      ],
+      "classifier.5.bias": [
+        4
+      ]
+    },
+    "approved_for_inference": false
+  },
+  {
+    "file": "ml/saved_models/image_model_mobilenetv2_improved.pth",
+    "legacy": true,
+    "embedded_classes": [
+      "No Cancer",
+      "Adenocarcinoma",
+      "Large Cell Carcinoma",
+      "Squamous Cell Carcinoma"
+    ],
+    "embedded_arch": "mobilenetv2",
+    "keys": 321,
+    "head_shapes": {
+      "classifier.1.weight": [
+        512,
+        1280
+      ],
+      "classifier.1.bias": [
+        512
+      ],
+      "classifier.2.weight": [
+        512
+      ],
+      "classifier.2.bias": [
+        512
+      ],
+      "classifier.2.running_mean": [
+        512
+      ],
+      "classifier.2.running_var": [
+        512
+      ],
+      "classifier.2.num_batches_tracked": [],
+      "classifier.5.weight": [
+        4,
+        512
+      ],
+      "classifier.5.bias": [
+        4
+      ]
+    },
+    "approved_for_inference": false
+  },
+  {
+    "file": "ml/saved_models/resnet18_model.pth",
+    "legacy": true,
+    "embedded_classes": null,
+    "embedded_arch": null,
+    "keys": 122,
+    "head_shapes": {
+      "fc.weight": [
+        4,
+        512
+      ],
+      "fc.bias": [
+        4
+      ]
+    },
+    "approved_for_inference": false
+  }
+]

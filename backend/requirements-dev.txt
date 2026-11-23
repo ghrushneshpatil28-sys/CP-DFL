@@ -1,0 +1,5 @@
+-r requirements.txt
+-r requirements-privacy.txt
+pypdf==6.21.1
+PyMuPDF==1.28.2
+httpx2==2.15.1

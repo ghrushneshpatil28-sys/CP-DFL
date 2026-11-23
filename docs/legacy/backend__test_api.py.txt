@@ -1,0 +1,37 @@
+import httpx
+import json
+import asyncio
+
+async def test_api():
+    url = "http://localhost:8000/api/predict"
+    
+    data = {
+        "age": 45,
+        "gender": "Male",
+        "smoking_history": "Never",
+        "family_history": False,
+        "symptoms": {"Chest Pain": "Severe"},
+        "daily_mouth_intake": {"Alcohol": "Occasional"},
+        "has_imaging": True
+    }
+    
+    # We generated test_valid.jpg via OpenCV in the previous step
+    files = {
+        'image': ('test_valid.jpg', open('test_valid.jpg', 'rb'), 'image/jpeg')
+    }
+    
+    data_payload = {
+        'data': json.dumps(data)
+    }
+    
+    print("Sending request with valid image...")
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(url, data=data_payload, files=files)
+            print("Status Code:", response.status_code)
+            print("Response:", response.text)
+    except Exception as e:
+        print("Error:", e)
+        
+if __name__ == "__main__":
+    asyncio.run(test_api())

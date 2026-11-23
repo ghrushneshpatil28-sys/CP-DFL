@@ -1,0 +1,26 @@
+4-Class Lung Cancer Dataset Report
+==================================================
+
+Classes:
+  No Cancer
+  Adenocarcinoma
+  Large Cell Carcinoma
+  Squamous Cell Carcinoma
+
+TRAIN SPLIT:
+  No Cancer: 148
+  Adenocarcinoma: 195
+  Large Cell Carcinoma: 115
+  Squamous Cell Carcinoma: 155
+
+VALID SPLIT:
+  No Cancer: 13
+  Adenocarcinoma: 23
+  Large Cell Carcinoma: 21
+  Squamous Cell Carcinoma: 15
+
+TEST SPLIT:
+  No Cancer: 54
+  Adenocarcinoma: 120
+  Large Cell Carcinoma: 51
+  Squamous Cell Carcinoma: 90

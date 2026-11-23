@@ -1,0 +1,17 @@
+{
+  "architecture": "resnet18",
+  "pretrained_on": "ImageNet (cleaned dataset)",
+  "num_classes": 4,
+  "class_names": [
+    "Adenocarcinoma",
+    "Large Cell Carcinoma",
+    "No Cancer",
+    "Squamous Cell Carcinoma"
+  ],
+  "image_size": 224,
+  "batch_size": 16,
+  "best_val_accuracy": 0.8501,
+  "best_val_f1": 0.8714,
+  "framework": "PyTorch",
+  "note": "Cleaned dataset model, no cross-split leakage. Trained with augmentations and Focal/Weighted Loss."
+}

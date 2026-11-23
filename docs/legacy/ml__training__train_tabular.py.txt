@@ -1,0 +1,220 @@
+"""
+train_tabular.py  —  Tabular model training on clinical risk features.
+
+Because no real patient CSV exists, this module:
+  1. Creates a sample demo schema (clearly labeled as demo/synthetic)
+  2. Trains RandomForest on it as an architecture demonstration
+  3. Saves all artifacts (model, scaler, label encoder)
+
+The REAL tabular inference at runtime uses the rule-based ml_service.py risk
+scoring which is based on the actual user inputs — NOT this demo CSV.
+The tabular_predictor.py wraps that into a standardized ML-like output.
+
+Run:
+    python ml/training/train_tabular.py
+"""
+
+import os
+import sys
+import json
+import random
+import numpy as np
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+
+from ml.utils.config import (
+    TABULAR_MODEL_PATH, LABEL_ENCODER_PATH, SCALER_PATH,
+    SAVED_MODELS_DIR, PLOTS_DIR, REPORTS_DIR, RANDOM_SEED, CLASS_NAMES
+)
+
+random.seed(RANDOM_SEED)
+np.random.seed(RANDOM_SEED)
+
+DEMO_CSV_PATH = os.path.join(
+    os.path.dirname(__file__), "..", "data", "processed", "sample_demo_tabular.csv"
+)
+
+TABULAR_FEATURES = [
+    "age", "gender_enc", "smoking_status_enc", "cigarettes_per_day",
+    "years_smoking", "family_history", "symptom_count",
+    "has_severe_symptom", "has_cough", "has_weight_loss",
+    "daily_tobacco", "daily_alcohol",
+]
+
+# Simplified 2-class label: 0 = No/Benign, 1 = Malignant
+# (The image model provides precise cancer type; tabular provides presence signal)
+TABULAR_CLASS_NAMES = ["No / Benign", "Malignant"]
+
+
+# ─── Synthetic demo data generator ────────────────────────────────────────────
+
+def generate_demo_data(n: int = 800):
+    """
+    Generate synthetic clinical records following realistic clinical patterns.
+    CLEARLY LABELED AS DEMO/SYNTHETIC — not real patient data.
+    """
+    rows = []
+    for _ in range(n):
+        # Random patient profile
+        age = random.randint(25, 80)
+        gender = random.choice([0, 1])          # 0=Female, 1=Male
+        smoke  = random.choice([0, 1, 2])       # 0=Never, 1=Former, 2=Current
+        cigs   = random.randint(0, 40) if smoke > 0 else 0
+        years  = random.randint(0, 40) if smoke > 0 else 0
+        family = random.choice([0, 1])
+        sym_cnt = random.randint(0, 6)
+        severe  = random.choice([0, 1]) if sym_cnt > 2 else 0
+        cough   = random.choice([0, 1]) if sym_cnt > 0 else 0
+        wloss   = random.choice([0, 1]) if sym_cnt > 1 else 0
+        tobacco = random.choice([0, 1]) if smoke == 2 else 0
+        alcohol = random.choice([0, 1])
+
+        # Rule-based label: roughly simulate clinical reality
+        risk = 0
+        risk += 0.2 if age > 55 else 0
+        risk += 0.35 if smoke == 2 else (0.15 if smoke == 1 else 0)
+        risk += 0.1  if family else 0
+        risk += 0.15 if severe else 0
+        risk += 0.08 * (sym_cnt / 6)
+        risk += 0.05 if tobacco else 0
+        risk += 0.03 if wloss else 0
+        label = 1 if (risk + random.gauss(0, 0.05)) > 0.45 else 0
+
+        rows.append([
+            age, gender, smoke, cigs, years, family,
+            sym_cnt, severe, cough, wloss, tobacco, alcohol, label
+        ])
+    return rows
+
+
+def create_demo_csv():
+    os.makedirs(os.path.dirname(DEMO_CSV_PATH), exist_ok=True)
+    import csv
+    header = TABULAR_FEATURES + ["label"]
+    data   = generate_demo_data(800)
+    with open(DEMO_CSV_PATH, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(header)
+        writer.writerows(data)
+    print(f"  Demo CSV created → {DEMO_CSV_PATH}")
+    print(f"  NOTE: This is SYNTHETIC/DEMO data for pipeline demonstration only.")
+    return DEMO_CSV_PATH
+
+
+# ─── Train ────────────────────────────────────────────────────────────────────
+
+def train():
+    import pandas as pd
+    import joblib
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.preprocessing import StandardScaler, LabelEncoder
+    from sklearn.model_selection import train_test_split
+    from sklearn.metrics import classification_report, accuracy_score
+
+    print("=" * 60)
+    print("  Tabular Model Training")
+    print("=" * 60)
+
+    # Create demo data if needed
+    if not os.path.isfile(DEMO_CSV_PATH):
+        create_demo_csv()
+    else:
+        print(f"  Demo CSV found → {DEMO_CSV_PATH}")
+
+    df = pd.read_csv(DEMO_CSV_PATH)
+    print(f"  Rows: {len(df)}  |  Columns: {list(df.columns)}")
+
+    X = df[TABULAR_FEATURES].values.astype(np.float32)
+    y = df["label"].values
+
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_scaled, y, test_size=0.2, random_state=RANDOM_SEED, stratify=y
+    )
+
+    # ── Random Forest (preferred) ──
+    print("\n  Training Random Forest...")
+    rf = RandomForestClassifier(
+        n_estimators=100,
+        max_depth=8,
+        min_samples_split=5,
+        class_weight="balanced",
+        random_state=RANDOM_SEED,
+        n_jobs=-1
+    )
+    rf.fit(X_train, y_train)
+    rf_preds = rf.predict(X_test)
+    rf_acc   = accuracy_score(y_test, rf_preds)
+    print(f"  Random Forest  →  Test Accuracy: {rf_acc:.4f}")
+    print(classification_report(y_test, rf_preds, target_names=TABULAR_CLASS_NAMES, digits=4))
+
+    # ── Logistic Regression ──
+    print("  Training Logistic Regression...")
+    lr = LogisticRegression(max_iter=500, class_weight="balanced", random_state=RANDOM_SEED)
+    lr.fit(X_train, y_train)
+    lr_preds = lr.predict(X_test)
+    lr_acc   = accuracy_score(y_test, lr_preds)
+    print(f"  Logistic Regression  →  Test Accuracy: {lr_acc:.4f}")
+
+    # Pick best
+    best_model = rf if rf_acc >= lr_acc else lr
+    best_name  = "RandomForest" if rf_acc >= lr_acc else "LogisticRegression"
+    best_acc   = max(rf_acc, lr_acc)
+    print(f"\n  → Best model: {best_name}  (acc={best_acc:.4f})")
+
+    # ── Save artifacts ──
+    os.makedirs(SAVED_MODELS_DIR, exist_ok=True)
+    import joblib as jl
+    jl.dump(best_model, TABULAR_MODEL_PATH)
+    jl.dump(scaler,     SCALER_PATH)
+
+    # Save feature names + metadata
+    meta = {
+        "model_type": best_name,
+        "features": TABULAR_FEATURES,
+        "class_names": TABULAR_CLASS_NAMES,
+        "accuracy": round(best_acc, 4),
+        "note": "Trained on SYNTHETIC demo data. Runtime uses rule-based clinical scoring from ml_service.py.",
+    }
+    meta_path = os.path.join(SAVED_MODELS_DIR, "tabular_metadata.json")
+    with open(meta_path, "w") as f:
+        json.dump(meta, f, indent=2)
+
+    print(f"\n  Tabular model saved → {TABULAR_MODEL_PATH}")
+    print(f"  Scaler saved        → {SCALER_PATH}")
+    print(f"  Metadata saved      → {meta_path}")
+
+    # ── Feature importance plot (RF) ──────────────────────────────────────────
+    if best_name == "RandomForest":
+        try:
+            import matplotlib
+            matplotlib.use("Agg")
+            import matplotlib.pyplot as plt
+
+            importance = best_model.feature_importances_
+            sorted_idx = np.argsort(importance)[::-1]
+            os.makedirs(PLOTS_DIR, exist_ok=True)
+
+            fig, ax = plt.subplots(figsize=(9, 5))
+            ax.bar(range(len(importance)), importance[sorted_idx])
+            ax.set_xticks(range(len(importance)))
+            ax.set_xticklabels([TABULAR_FEATURES[i] for i in sorted_idx], rotation=35, ha="right", fontsize=8)
+            ax.set_title("Random Forest Feature Importances (Tabular Model)")
+            ax.set_ylabel("Importance")
+            plt.tight_layout()
+            fi_path = os.path.join(PLOTS_DIR, "tabular_feature_importance.png")
+            plt.savefig(fi_path, dpi=100)
+            plt.close()
+            print(f"  Feature importance plot → {fi_path}")
+        except Exception as e:
+            print(f"  [WARN] Could not save feature plot: {e}")
+
+    print("\n  Tabular training complete!")
+    print("=" * 60)
+
+
+if __name__ == "__main__":
+    train()

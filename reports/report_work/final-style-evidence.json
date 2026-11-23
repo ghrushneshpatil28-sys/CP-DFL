@@ -1,0 +1,170 @@
+{
+  "input": "F:\\DFL-CP\\reports\\PULSAR_DFL_Final_Report.docx",
+  "fonts_by_char_count": {
+    "Times New Roman": 45468
+  },
+  "direct_run_formatting_runs": 575,
+  "direct_paragraph_formatting_paragraphs": 544,
+  "heading_like_paragraphs_not_heading_style": [
+    {
+      "para_index": 5,
+      "text": "BACHELOR OF TECHNOLOGY IN",
+      "style": "Normal"
+    },
+    {
+      "para_index": 6,
+      "text": "Computer Science and Engineering",
+      "style": "Normal"
+    },
+    {
+      "para_index": 7,
+      "text": "Artificial Intelligence",
+      "style": "Normal"
+    },
+    {
+      "para_index": 8,
+      "text": " OF",
+      "style": "Normal"
+    },
+    {
+      "para_index": 9,
+      "text": "VISHWAKARMA INSTITUTE OF TECHNOLOGY",
+      "style": "Normal"
+    },
+    {
+      "para_index": 11,
+      "text": "Lalit More (12411598)",
+      "style": "Normal"
+    },
+    {
+      "para_index": 12,
+      "text": "Ghrushnesh Patil (12411658)",
+      "style": "Normal"
+    },
+    {
+      "para_index": 13,
+      "text": "Saksham Moon (12414037)",
+      "style": "Normal"
+    },
+    {
+      "para_index": 14,
+      "text": "Pranav Panure (12414949)",
+      "style": "Normal"
+    },
+    {
+      "para_index": 16,
+      "text": "Prof. Jayshree Bedade",
+      "style": "Normal"
+    },
+    {
+      "para_index": 17,
+      "text": "DEPARTMENT OF COMPUTER SCIENCE & ENGINEERING",
+      "style": "Normal"
+    },
+    {
+      "para_index": 18,
+      "text": "(ARTIFICIAL INTELLIGENCE)",
+      "style": "Normal"
+    },
+    {
+      "para_index": 19,
+      "text": "BANSILAL RAMNATH AGARWAL CHARITABLE TRUST'S",
+      "style": "Normal"
+    },
+    {
+      "para_index": 20,
+      "text": "VISHWAKARMA INSTITUTE OF TECHNOLOGY",
+      "style": "Normal"
+    },
+    {
+      "para_index": 21,
+      "text": "(An Autonomous Institute affiliated to Savitribai Phule Pune University)",
+      "style": "Normal"
+    },
+    {
+      "para_index": 24,
+      "text": "BANSILAL RAMNATH AGARWAL CHARITABLE TRUST'S",
+      "style": "Normal"
+    },
+    {
+      "para_index": 26,
+      "text": "(An Autonomous Institute affiliated to Savitribai Phule Pune University)",
+      "style": "Normal"
+    },
+    {
+      "para_index": 29,
+      "text": "CERTIFICATE",
+      "style": "Normal"
+    },
+    {
+      "para_index": 33,
+      "text": "ACKNOWLEDGEMENT",
+      "style": "Normal"
+    },
+    {
+      "para_index": 43,
+      "text": "ABSTRACT",
+      "style": "Normal"
+    }
+  ],
+  "examples": {
+    "direct_paragraph_formatting": [
+      {
+        "para_index": 1,
+        "text": "A Course Project Report",
+        "style": "Normal"
+      },
+      {
+        "para_index": 2,
+        "text": "on",
+        "style": "Normal"
+      },
+      {
+        "para_index": 3,
+        "text": "PULSAR\nDistributed Lung Cancer Image Classification Using Privacy Preserving Federated Learning",
+        "style": "Title"
+      },
+      {
+        "para_index": 4,
+        "text": "SUBMITTED IN PARTIAL FULFILLMENT OF THE REQUIREMENTS FOR THE DEGREE OF",
+        "style": "Normal"
+      },
+      {
+        "para_index": 5,
+        "text": "BACHELOR OF TECHNOLOGY IN",
+        "style": "Normal"
+      }
+    ],
+    "direct_run_formatting": [
+      {
+        "para_index": 1,
+        "run_text": "A Course Project Report",
+        "style": "Normal"
+      },
+      {
+        "para_index": 2,
+        "run_text": "on",
+        "style": "Normal"
+      },
+      {
+        "para_index": 3,
+        "run_text": "PULSAR\nDistributed Lung Cancer Image Classification Using Privacy Preserving Fed",
+        "style": "Title"
+      },
+      {
+        "para_index": 4,
+        "run_text": "SUBMITTED",
+        "style": "Normal"
+      },
+      {
+        "para_index": 4,
+        "run_text": " ",
+        "style": "Normal"
+      }
+    ]
+  },
+  "notes": [
+    "Direct formatting is not always wrong, but it often causes inconsistent output when templates change.",
+    "Heading-like paragraphs not using Heading styles can break TOC and accessibility."
+  ]
+}

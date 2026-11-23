@@ -1,0 +1,343 @@
+P1 [Normal]  A Course Project Report 
+P2 [Normal] on 
+P3 [Normal] “Semantic Vectorization & Federated Graph Learning Formulti-Modal Iot Anomaly Detection In Smart Hospitals”
+P4 [Normal] SUBMITTED IN PARTIAL FULFILLMENT OF THE REQUIREMENTS FOR THE DEGREE OF
+P5 [Normal] BACHELOR OF TECHNOLOGY IN
+P7 [Normal] “Computer Science & Engineering 
+P8 [Normal] (Artificial Intelligence)”
+P10 [Normal]  OF
+P11 [Normal] VISHWAKARMA INSTITUTE OF TECHNOLOGY
+P12 [Heading 2] Savitribai Phule Pune University
+P14 [Normal] Disha Gupta(12414163)
+P15 [Normal] Meetal Gaikwad(12410509)
+P16 [Normal] Anuj Gardi(12411308)
+P17 [Normal] Harshal Ramteke(12412909)
+P18 [Normal] UNDER THE GUIDANCE OF
+P19 [Normal] Prof. Jayshree Bedade
+P21 [Normal] DEPARTMENT OF COMPUTER SCIENCE & ENGINEERING
+P22 [Normal] (ARTIFICIAL INTELLIGANCE )
+P23 [Normal] BANSILAL RAMNATH AGARWAL CHARITABLE TRUST’S
+P24 [Normal] VISHWAKARMA INSTITUTE OF TECHNOLOGY
+P25 [Normal] (An Autonomous Institute affiliated to Savitribai Phule Pune University)
+P28 [Normal] BANSILAL RAMNATH AGARWAL CHARITABLE TRUST’S
+P29 [Heading 2]                VISHWAKARMA INSTITUTE OF TECHNOLOGY
+P30 [Normal] (An Autonomous Institute affiliated to Savitribai Phule Pune University)
+P31 [Heading 2]                                       PUNE – 411037
+P33 [Normal] CERTIFICATE
+P35 [Normal] This is to certify that the Course Project titled “Semantic Vectorization + Federated Graph Learning for Multi-Modal IoT Anomaly Detection in Smart Hospitals”, submitted by Disha Gupta(12414163), Meetal Gaikwad(12410509), Anuj Gardi(12411308), Harshal Ramteke(12412909), is in partial fulfillment of the requirements for the award of the Degree of Bachelor of Technology in Computer Science and Engineering (Artificial Intelligence) for the course Distributed Federated Learning, at Vishwakarma Institute of Technology, affiliated to Savitribai Phule Pune University. This project report is a record of the bonafide work carried out by the above-mentioned students under my guidance during the academic year 2026–27.
+P37 [Normal] Prof.Jayshree Bedade				               Prof. Dr. Nilesh P.Sable
+P38 [Normal]            Guide                                                                                   HOD
+P39 [Normal] Computer Science and Engineering                                             Computer Science and Engineering
+P40 [Normal] (Artificial Intelligence )                                                                    (Artificial Intelligence).
+P49 [Normal]                                     ACKNOWLEDGEMENT
+P53 [Normal] It gives us great pleasure in presenting the preliminary project report on course  “Semantic Vectorization & Federated Graph Learning for Multi-Modal IoT Anomaly Detection in Smart Hospitals”. We would like to take this opportunity to thank our internal guide Prof. Jayshree Bedade for giving us all the help and guidance we needed. We are really grateful to them for her kind support. Her valuable suggestions were very helpful. We are also grateful to Prof.  Dr. Nilesh Sable, Head of  Department of Computer Science & Engineering (Artificial Intelligence) VIT Pune, for his indispensable support, suggestions.
+P56 [Normal] Disha Gupta(12414163)
+P57 [Normal] Meetal Gaikwad(12410509)
+P58 [Normal] Anuj Gardi(12411308)
+P59 [Normal] Harshal Ramteke(12412909)
+P60 [Normal]  ( Computer Science & Engineering (Artificial Intelligence))
+P75 [Normal] ABSTRACT 
+P77 [Body Text] Smart hospitals increasingly depend on connected medical devices, sensors and digital clinical systems. These components generate heterogeneous data that can be useful for identifying unusual device behaviour and potential operational risks. However, healthcare data is sensitive, distributed across institutions and difficult to combine centrally. Conventional centralized machine-learning pipelines may require raw data to be transferred to a common server, creating privacy, governance and communication concerns. In addition, IoT telemetry and clinical text have different structures and require suitable representation methods.
+P79 [Body Text] This project presents a multi-modal anomaly-detection framework that combines semantic vectorization and federated graph learning for smart-hospital IoT environments. The design uses Bio_ClinicalBERT for clinical text representation and GraphSAGE for learning relationships among connected IoT devices. Federated learning is used to coordinate learning across three simulated hospital clients through the Federated Averaging (FedAvg) approach. The intended design keeps raw client data local while allowing model information to be aggregated for collaborative learning.
+P81 [Body Text] The reported experiments examine predictive performance, modality contribution, communication cost and robustness under a severe non-independent and identically distributed (non-IID) setting. The recorded results include a federated IoT F1-score of 99.30%, an IoT-only F1-score of 99.26% and a PR-AUC of 0.9942. In the modality comparison, IoT-only, clinical-only and combined settings achieved 97.74%, 50.33% and 97.64%, respectively, for the reported comparison metric. Over ten rounds and three clients, communication was reported as 0.97 MB for IoT-only federated learning and 31.03 MB for the multimodal federated configuration. The worst-client F1-score under severe non-IID data was 0.9630. These results indicate strong IoT-side predictive performance and highlight the communication overhead introduced by multimodal model exchange. The report also discusses limitations, reproducibility requirements and future improvements.
+P87 [Normal] TABLE OF CONTENTS 
+P91 [Normal] INTRODUCTION
+P93 [List Paragraph] OVERVIEW OF THE PROJECT
+P94 [Normal] Hospitals use a growing range of connected devices such as patient monitors,
+infusion systems, environmental sensors, wearable devices and network-connected
+diagnostic equipment. These devices produce continuous streams of operational
+measurements. At the same time, hospital information systems maintain clinical notes
+and other text-based records. Together, these data sources can provide a richer view of
+hospital operations than either source alone.
+P95 [Normal] The project, titled “Semantic Vectorization & Federated Graph Learning for Multi-
+Modal IoT Anomaly Detection in Smart Hospitals”, studies a learning framework for
+identifying unusual patterns in connected hospital environments. The project considers
+two broad information modalities: structured or time-dependent IoT information and
+unstructured clinical text. These modalities differ in format, meaning and learning
+requirements.
+P96 [Normal] The clinical-text side uses Bio_ClinicalBERT, a language model adapted to
+biomedical and clinical text. Its role in the proposed framework is to transform clinical
+text into contextual semantic representations. These representations can encode
+contextual relationships between words and phrases more effectively than simple word
+counts or isolated token features.
+P97 [Normal] The project evaluates predictive performance as well as communication overhead.
+This distinction is important because a model can achieve strong predictive results
+while requiring substantial communication. A practical distributed healthcare solution
+must consider both dimensions, along with client-level performance and the impact of
+non-IID data
+P99 [List Paragraph] PROBLEM STATEMENT
+P100 [Normal] Smart hospitals generate heterogeneous data across multiple connected devices
+and clinical information systems. Detecting anomalies from these distributed sources is
+challenging because data may be stored at different institutions, may follow different
+distributions and may contain sensitive information. Centralizing all raw records can
+increase privacy and governance risks, while training isolated models at each site may
+limit the ability to learn patterns shared across institutions.
+P101 [Normal] A second challenge is representation. IoT observations may be related through
+device-to-device or device-to-system connections, while clinical notes contain
+contextual language. A single representation technique may not capture both modalities
+appropriately. Furthermore, communication of large model updates can become
+expensive when multiple clients participate in repeated federated rounds.
+P102 [Normal] Therefore, the problem addressed in this project is to study a multi-modal and
+privacy-aware anomaly-detection framework that can learn from distributed hospital
+clients, represent IoT relationships and clinical text, and evaluate the trade-off between
+predictive performance and communication cost
+P104 [List Paragraph] OBJECTIVES 
+P105 [List Paragraph]  Design a distributed learning workflow for anomaly detection across three simulated hospital clients. 
+P106 [List Paragraph]  Use GraphSAGE as the graph-learning component for representing relationships among connected IoT devices.
+P107 [List Paragraph]  Use Bio_ClinicalBERT to obtain semantic representations from clinical text.
+P108 [List Paragraph]  Compare IoT-only, clinical-only and combined modality configurations using the project’s recorded evaluation results. 
+P109 [List Paragraph]  Measure communication overhead across ten federated rounds and three clients.
+P110 [List Paragraph]  Evaluate client robustness under a severe non-IID data distribution
+P125 [List Paragraph] SCOPE OF THE PROJECT
+P126 [Normal] The project is a research-oriented course project and experimental prototype. Its scope is limited to the datasets, simulated client arrangement, model configurations and experiments actually implemented by the project team. The three clients represent separate hospital participants in a federated simulation; they should not be interpreted as live deployments at real hospitals. The report focuses on the system design and evaluation of federated learning, graph-based IoT representation and clinical semantic vectorization. It discusses privacy motivation and the reduction of raw-data centralization, but it does not claim that federated learning alone guarantees complete privacy. Model updates may still reveal information unless additional privacy-preserving controls are applied. The report does not claim clinical validation, medical diagnosis capability or readiness for deployment in patient-care workflows. Any future clinical use would require appropriate datasets, expert review, security assessment, regulatory evaluation and validation in realistic hospital environments.
+P147 [Normal] 2. LITERATURE SURVEY
+P149 [Normal] 2.1 BACKGROUND AND RELATED CONCEPTS 
+P151 [Normal] 2.1.1 Internet of Medical Things 
+P152 [Normal] The Internet of Medical Things (IoMT) refers to connected devices and systems used to collect, transmit or process healthcare-related information. Examples include bedside monitors, wearable sensors, smart infusion equipment and environmental monitoring systems. These devices can improve visibility into hospital operations, but their connectivity also creates a large and varied data environment. 
+P153 [Normal] Anomaly detection in IoMT may identify unusual measurements, unexpected device states, abnormal communication patterns or deviations from normal operating behaviour. The meaning of an anomaly depends on context. A measurement that is unusual for one device or patient setting may be normal in another. For this reason, the relationships between devices and the operating environment can be useful signals.
+P155 [Normal] 2.1.2 Anomaly Detection 
+P156 [Normal] Anomaly detection is the process of identifying observations or patterns that differ significantly from expected behaviour. In supervised settings, labelled examples can be used to train a classifier. In unsupervised or semi-supervised settings, the model may learn a representation of normal behaviour and flag deviations. The project’s reported F1-score and PR-AUC indicate that classification-style evaluation was used for at least part of the experimental analysis; the precise label-generation and split protocol should be documented from the experiment logs.
+P157 [Normal] Accuracy alone can be misleading when abnormal events are rare. Precision measures the proportion of predicted anomalies that are correct, while recall measures the proportion of actual anomalies detected. The F1-score combines precision and recall through their harmonic mean. Precision–Recall AUC summarizes the precision-recall trade-off across thresholds and is particularly informative for imbalanced binary classification.
+P159 [Normal] 2.1.3 Graph Neural Networks and GraphSAGE 
+P160 [Normal] Many real-world systems can be represented as graphs. A graph consists of nodes and edges, where nodes represent entities and edges represent relationships. In a hospital IoT environment, nodes may represent connected devices and edges may represent relationships defined by the dataset or system topology. Graph neural networks learn node representations by combining information from a node and its neighbourhood. GraphSAGE is an inductive graph representation method that samples and aggregates features from neighbouring nodes. Its inductive nature can support representations for nodes not seen during the initial training, provided that suitable features and neighbourhood information are available. In this project, GraphSAGE is the graph-learning component for IoT relationships. The exact node attributes, edge definitions, sampling sizes, aggregation function and number of layers must be taken from the implementation configuration. These implementation-specific details are intentionally not guessed in this report
+P162 [Normal] 2.1.4 Clinical Language Models 
+P163 [Normal] Clinical text contains abbreviations, domain-specific terms, contextual references and phrases whose meaning depends on surrounding words. Traditional bag-of-words methods may fail to preserve these contextual relationships. Transformer-based language models use attention mechanisms to build contextual token representations. Bio_ClinicalBERT is a BERT-family language model further trained on clinical text. It can be used to produce contextual representations of clinical notes or text segments. In the proposed system, semantic vectorization provides a numerical representation of clinical language that can be used by downstream learning components. The report does not assume a particular pooling strategy or embedding dimension unless confirmed from the code. 
+P165 [Normal] 2.1.5 Federated Learning 
+P166 [Normal] Federated learning is a distributed machine-learning approach in which multiple clients train locally and share model updates with a coordinating server. The server aggregates the updates and distributes a global model for subsequent training. This approach can reduce the need to transfer raw client data to a central repository. 
+P167 [Normal] FedAvg, introduced by McMahan and colleagues, performs weighted averaging of locally trained model parameters. In a typical round, the server sends the current global parameters to selected clients. Each client trains using its local data and returns updated parameters. The server aggregates the updates, commonly weighting each client according to its number of training examples.
+P171 [Normal] 2.2 EXISTING SYSTEM AND ITS LIMITATIONS
+P172 [Normal] A common approach to multi-site machine learning is to collect data from participating institutions into a centralized storage and processing environment. A central model can then be trained using the pooled dataset. This approach can simplify model development and provide direct access to combined data,but it requires data transfer and centralized governance. 
+P174 [List Paragraph] Table 2.1 – Existing approaches and Limitation
+P176 [Normal] 2.3 PROPOSED SYSTEM OVERVIEW
+P177 [Normal] The proposed framework combines graph-based IoT learning, clinical semantic vectorization and federated optimization. Each simulated hospital client maintains its local data. The IoT branch uses graph information to learn representations of connected devices. The clinical branch uses Bio_ClinicalBERT to encode text into semantic vectors. The project evaluates modality configurations and federated training behaviour.
+P178 [Normal] A coordinating server manages the federated rounds. At the beginning of a round, the server distributes the current model parameters to participating clients. Each client performs local training and returns its update. The server aggregates the updates using FedAvg. This process repeats for the configured ten rounds in the reported communication experiment.
+P179 [Normal] The experimental comparison includes IoT-only, clinical-only and combined modality settings. The recorded modality comparison results are 97.74%, 50.33% and 97.64%, respectively. Because the exact metric label and detailed evaluation protocol must be verified against the original result logs, these values are presented as the reported modality-comparison scores rather than being relabelled as accuracy or F1.
+P181 [Normal] 2.4 RESEARCH GAP AND MOTIVATION
+P182 [Normal] The project is motivated by the need to examine distributed anomaly detection when data types and data ownership differ across hospital environments. The combination of graph learning and clinical language representations provides a way to study complementary data structures. Federated learning provides a framework for collaborative model optimization without routinely transferring raw records to a central training repository.
+P183 [Normal] An important practical gap is the trade-off between model richness and communication cost. Adding a clinical language branch may increase the amount of model information exchanged, even when predictive improvements are limited. The recorded communication comparison—0.97 MB for IoT-only federated learning and 31.03 MB for multimodal federated learning over ten rounds and three clients—makes this trade-off a central part of the project evaluation.
+P202 [Normal] 3. SYSTEM DESIGN
+P204 [Normal] 3.1 SYSTEM REQUIREMENTS
+P205 [Normal] The system is organized as an experimental federated-learning pipeline. It requires a development environment capable of data preparation, graph construction, text processing, local model training, parameter aggregation and metric calculation. Since the exact hardware and package versions were not supplied in the available project notes, the following requirements are expressed as functional requirements and a configuration checklist rather than unsupported fixed specifications
+P207 [List Paragraph] Table 3.1 – Hardware Requirement
+P215 [List Paragraph] Table 3.2 - Software Requirements
+P217 [Normal] 3.2 SYSTEM ARCHITECTURE
+P218 [Normal] The system can be understood as five connected layers: client-side data storage, modality-specific preprocessing, representation learning, federated coordination and evaluation. Each simulated hospital client owns a local data partition. The local preprocessing stage prepares IoT graph inputs and clinical text inputs. The model stage generates graph and semantic representations. Local training updates the relevant model parameters, which are sent to the central coordinator for aggregation.
+P219 [Normal] The central coordinator does not need to collect raw client records for the standard FedAvg workflow. It receives model updates, aggregates them and sends the updated global parameters back to clients. The process repeats until the configured number of communication rounds is completed or another stopping condition is reached.
+P225 [List Paragraph] Figure 3.1: Conceptual architecture of the proposed federated multi-modal framework
+P227 [Normal] Figure 3.1 is a conceptual representation based on the project description. The exact fusion location, whether the clinical and IoT branches are jointly optimized or evaluated as separate configurations, and the exact parameter-sharing boundary must be aligned with the final implementation before submission.
+P229 [Normal] 3.3 MODULE DESCRIPTION
+P231 [Normal] 3.3.1 Client Data Management Module
+P232 [Normal] This module represents the three simulated hospital clients and their local data partitions. Each client has access to its own training examples and performs local processing. The client boundary is important because the federated setup is intended to avoid routine central collection of raw records. Client identifiers, partition sizes and the method used to create the partitions should be documented from the experiment configuration
+P234 [Normal] 3.3.2 IoT Data Processing Module
+P235 [Normal] The IoT processing module prepares the device-related inputs for graph learning. At a conceptual level, this includes identifying the features associated with each device and representing the relationships between devices as graph edges. Data cleaning, missing-value treatment, normalization, windowing and label mapping depend on the dataset and implementation. These steps must be described exactly as performed in the source code.
+P237 [Normal] 3.3.3 GraphSAGE Representation Module
+P238 [Normal] GraphSAGE learns device representations by sampling and aggregating neighbouring node information. A node’s representation is updated using its own features and information from sampled neighbours. The resulting embeddings can be passed to a downstream anomaly-detection component. The specific aggregation operator and hyperparameters should be inserted from the model definition.
+P240 [Normal] 3.3.4 Clinical Text Vectorization Module
+P241 [Normal] The clinical text module uses Bio_ClinicalBERT to transform text into contextual semantic representations. Text is tokenized and processed by the language model, which produces contextual hidden states. A downstream representation is then used in the experimental pipeline. The precise truncation length, pooling method, fine-tuning strategy and embedding dimension are implementation-specific and should be filled from the actual code.
+P243 [Normal] 3.3.5 Federated Server and FedAvg Module
+P244 [Normal] The federated server coordinates the communication rounds. It distributes the current global parameters, receives local client updates and aggregates them. In FedAvg, the aggregation is generally weighted by the number of local training examples. For client k with local sample count n_k and local parameters w_k, the aggregated parameters can be represented as:
+P248 [Normal] 3.3.6 Evaluation and Reporting Module
+P249 [Normal] The evaluation module computes the selected predictive metrics and records communication cost. It also compares modality configurations and evaluates the worst-client result under a severe non-IID setting. Keeping per-round and per-client logs is recommended so that aggregate metrics can be traced to the underlying experiment.
+P251 [Normal] 3.4 DATA FLOW AND FEDERATED WORKFLOW
+P252 [List Paragraph] Initialize the server model and define the participating simulated clients.
+P253 [List Paragraph] Keep each client’s raw data within its local partition.
+P254 [List Paragraph] Prepare IoT inputs and construct the graph representation required by GraphSAGE.
+P255 [List Paragraph] Prepare clinical text and generate semantic representations using Bio_ClinicalBERT.
+P256 [List Paragraph] Distribute the current global parameters to participating clients.
+P257 [List Paragraph] Train locally using each client’s available training data.
+P258 [List Paragraph] Return model updates or parameters to the coordinating server.
+P259 [List Paragraph] Aggregate the updates using the configured FedAvg procedure.
+P260 [List Paragraph] Broadcast the updated global parameters for the next communication round.
+P261 [List Paragraph] Repeat the process for the configured number of rounds and save evaluation logs.
+P263 [Normal] The project’s reported communication comparison covers ten rounds and three clients. The exact definition of communication volume—whether it counts uploads only, downloads and uploads, serialized parameter payloads, protocol overhead or all exchanged data—must be stated from the measurement code. This definition affects how communication results should be interpreted.
+P274 [Normal] 4. IMPLEMENTATION AND TESTING
+P276 [Normal] 4.1 EXPERIMENTAL SETUP
+P277 [Normal] The reported experimental setup uses three simulated hospital clients and ten federated communication rounds for the communication comparison. The learning workflow is based on FedAvg. The project uses GraphSAGE for the IoT graph-learning component and Bio_ClinicalBERT for clinical text representation. The experiment compares IoT-only, clinical-only and combined modality settings and includes an evaluation under severe non-IID client data.
+P279 [List Paragraph] Table 4.1 – Project Domain Configuration
+P281 [Normal] The dataset name, number of records, feature list, label distribution, train-validation-test split, random seed, optimizer, learning rate, batch size, local epochs and hardware details were not available in the project information used to prepare this draft. These details are essential for a complete reproducibility section and should be inserted from the final code and experiment logs.
+P287 [Normal] 4.2 IMPLEMENTATION METHODOLOGY
+P289 [Normal] 4.2.1 Data Partitioning Across Clients
+P290 [Normal] The federated experiment is organized around three simulated clients. Each client uses a local partition for training. A partitioning strategy determines how data is distributed among clients and has a direct effect on the degree of statistical heterogeneity. In an IID partition, clients have broadly similar data distributions. In a non-IID partition, the class proportions or feature distributions can differ between clients.
+P291 [Normal] The severe non-IID experiment is important because real hospitals may differ in device types, patient populations, workflows and event frequencies. A global model that performs well on average may still perform poorly for one participant. Reporting the worst-client F1-score helps expose this possibility.
+P293 [Normal] 4.2.2 IoT Graph Preparation
+P294 [Normal] The IoT branch requires a graph structure. The project uses GraphSAGE, which means that device or entity features and their neighbourhood relationships are represented in a graph-compatible format. The graph construction process should specify what constitutes a node, what constitutes an edge, whether edges are directed or undirected, and how node features are generated.
+P295 [Normal] The exact graph schema is dataset-dependent. For the final submission, include the real node and edge definitions, feature names, preprocessing sequence and any graph sampling parameters. Do not use illustrative device relationships as if they were confirmed dataset fields.
+P297 [Normal] 4.2.3 Clinical Text Processing
+P298 [Normal] The clinical branch applies Bio_ClinicalBERT to clinical text. The text is tokenized according to the model tokenizer and passed through the transformer to obtain contextual representations. A representation suitable for the downstream task is then selected. Depending on the implementation, this may involve a pooled output, a special-token representation or an aggregation over token embeddings.
+P299 [Normal] The final report should specify the tokenizer version, maximum sequence length, handling of empty or long notes, text cleaning rules, whether the language model was frozen or fine-tuned, and the method used to obtain a fixed-size vector. These are not interchangeable implementation choices and should be documented accurately.
+P300 [Normal] 4.2.4 Federated Training
+P301 [Normal] In a federated round, the server provides the current global parameters to the selected clients. Each client trains locally using its own partition. After local training, the client sends its update to the server. The server aggregates the received updates and produces the next global model. The cycle repeats across rounds.
+P302 [Normal] The main advantage of this workflow is that raw training records do not need to be transferred to the central aggregation server in the standard design. The approach nevertheless requires careful protection of model updates, because updates can contain information about local examples. A production system should evaluate secure aggregation and privacy-enhancing mechanisms.
+P304 [Normal] 4.2.5 Modality Comparison
+P305 [Normal] The project compares three modality configurations: IoT-only, clinical-only and combined. The recorded comparison scores are 97.74% for IoT-only, 50.33% for clinical-only and 97.64% for combined. These values are reproduced as supplied in the project results. The metric name, averaging method and evaluation split should be confirmed from the original result table or script before the report is submitted.
+P306 [Normal] The comparison suggests that the IoT branch contributes strongly in the evaluated setup, while the clinical-only configuration has a substantially lower reported score. The combined score is close to, but slightly below, the IoT-only score in this comparison. This does not establish that clinical text is generally unhelpful; it indicates that the value of an additional modality depends on data quality, alignment, representation, fusion and evaluation design.
+P308 [Normal] 4.3 EVALUATION METRICS
+P310 [Normal] 4.3.1 Precision
+P311 [Normal] Precision measures how many of the instances predicted as positive are actually positive. It is calculated as TP / (TP + FP), where TP is the number of true positives and FP is the number of false positives. High precision indicates that fewer normal observations are incorrectly flagged as anomalies.
+P315 [Normal] 4.3.2 Recall
+P316 [Normal] Recall measures how many actual positive instances are correctly detected. It is calculated as TP / (TP + FN), where FN is the number of false negatives. In anomaly detection, recall is important because missed abnormal events may be operationally significant.
+P318 [Normal] 4.3.3 F1-score
+P319 [Normal] The F1-score is the harmonic mean of precision and recall. It is calculated as 2 × (Precision × Recall) / (Precision + Recall). It provides a single measure that balances false positives and false negatives. The project reports an IoT federated F1-score of 99.30% and an IoT-only F1-score of 99.26% in the overall result summary.
+P321 [Normal] 4.3.4 Precision–Recall AUC
+P322 [Normal] The area under the precision-recall curve summarizes the relationship between precision and recall over different classification thresholds. It is useful when positive examples are relatively rare. The project reports a PR-AUC value of 0.9942 for the federated IoT result.
+P324 [Normal] 4.3.5 Communication Cost
+P325 [Normal] Communication cost measures the volume of information exchanged between clients and the aggregation server. It can be reported in bytes, kilobytes or megabytes. The measurement should define whether both upload and download traffic are included and whether protocol overhead is counted. The project reports 0.97 MB for IoT-only federated learning and 31.03 MB for multimodal federated learning over ten rounds and three clients.
+P327 [Normal] 4.3.6 Worst-Client Performance
+P328 [Normal] Worst-client performance is the lowest client-level metric among the participating clients. It is useful in federated settings because aggregate performance may hide poor results for a particular participant. The project reports a worst-client F1-score of 0.9630 under severe non-IID conditions.
+P334 [Normal] 4.4 RESULTS AND DISCUSSION
+P335 [Normal] Table 4.3 - Overall IoT Performance
+P337 [Normal] The recorded IoT results show high F1 and PR-AUC values in the evaluated experiment. The federated IoT F1-score is reported as 99.30%, while the IoT-only F1-score is reported as 99.26%..
+P339 [Normal] Table 4.4 - Modality Comparison
+P341 [Normal] The modality comparison indicates that IoT-only achieved the highest reported score among the three configurations. The clinical-only result was lower, and the combined result was close to the IoT-only result. This suggests that the clinical branch did not improve the selected comparison metric in the reported experiment. Possible factors to investigate include class imbalance, label alignment, text quality, missing clinical context, fusion strategy and the amount of training data available to the clinical branch.
+P342 [Normal] The report intentionally calls these values “reported comparison scores” until the exact metric label is checked against the original experiment output. If the original output confirms that these are F1-scores, accuracy values or another metric, update the table heading and discussion consistently.
+P349 [Normal] Table 4.5 - Communication Efficiency
+P351 [Normal] The multimodal configuration exchanged substantially more information than the IoT-only configuration in the reported experiment. This is an important engineering trade-off: a richer model can require larger parameter exchanges or additional components to be synchronized
+P352 [Normal] The communication figures should be interpreted using the same measurement method for both configurations. For the final report, the team should state whether the values represent total communication across all clients and rounds, the sum of uploads and downloads, or another accounting method. The comparison is strongest when the measurement boundary is identical.
+P354 [Normal] 4.4.4 Interpretation of the Results
+P355 [Normal] Taken together, the results show that the evaluated IoT branch achieved strong predictive performance, while the multimodal configuration incurred higher communication cost and did not exceed the IoT-only score in the reported modality comparison. The non-IID result suggests that the federated model retained useful performance for the weakest client, although additional tests are needed to understand variance across random seeds and client partitions.
+P356 [Normal] The findings should not be generalized beyond the evaluated dataset and simulation. High scores can be influenced by dataset characteristics, leakage, duplicate records, class distribution, split strategy or overlap between clients. Before making a deployment claim, the team should verify that the train, validation and test partitions are separated correctly and that preprocessing is fitted only on training data.
+P358 [Normal] 4.5 TESTING AND VALIDATION
+P359 [Normal] Table  4.6 - Functional Testing
+P361 [Normal] 4.5.2 Model Validation
+P362 [Normal] Model validation should confirm that the training and evaluation pipeline uses consistent label definitions, correct metric calculations and a held-out evaluation set. The team should inspect confusion matrices, precision-recall curves and per-client metrics where available. The model should also be tested against simple baselines so that the benefit of graph learning and federated training can be distinguished from the effect of the underlying dataset.
+P364 [Normal] 4.5.3 Non-IID Validation
+P365 [Normal] The severe non-IID experiment evaluates whether client heterogeneity affects model performance. A complete validation should document how non-IID partitions were generated, which classes or features differ between clients, and whether the reported worst-client F1-score is calculated on each client’s own held-out test data. Multiple partition seeds would provide a more reliable estimate of robustness.
+P367 [Normal] 4.5.4 Reproducibility Checklist
+P368 [List Paragraph] Record the dataset source, version, licence and permitted use.
+P369 [List Paragraph] Document the number of samples, features, classes and missing values.
+P370 [List Paragraph] Specify the train, validation and test split procedure.
+P371 [List Paragraph] Record client partition sizes and the IID / non-IID construction method.
+P372 [List Paragraph] Record software versions, hardware, random seeds and model checkpoints.
+P373 [List Paragraph] Record GraphSAGE architecture and Bio_ClinicalBERT vectorization details.
+P374 [List Paragraph] Record optimizer, learning rate, local epochs, batch size and aggregation settings.
+P375 [List Paragraph] Save per-round metrics, client-level results and communication measurements.
+P377 [Normal] 4.6 Screenshots
+P379 [Normal] Fig. 4.1 - Dashboard
+P381 [Normal] Fig. 4.2 – Distributed Medical Network
+P384 [Normal] Fig. 4.3 – Results and Analysis
+P387 [Normal] 5. CONCLUSION AND FUTURE SCOPE
+P389 [Normal] 5.1 CONCLUSION
+P390 [Normal] This course project studied a multi-modal federated-learning framework for anomaly detection in smart-hospital IoT environments. The design combines GraphSAGE for learning representations of connected IoT devices with Bio_ClinicalBERT for semantic representation of clinical text. Federated Averaging coordinates learning across three simulated hospital clients while keeping raw client data local within the standard training workflow.
+P391 [Normal] The reported experimental results include a federated IoT F1-score of 99.30%, an IoT-only F1-score of 99.26% and a PR-AUC of 0.9942. The modality comparison reported scores of 97.74% for IoT-only, 50.33% for clinical-only and 97.64% for the combined configuration. Under severe non-IID conditions, the worst-client F1-score was 0.9630. These results provide evidence of strong performance in the evaluated IoT setting, while also showing that the combined modality did not outperform IoT-only in the reported comparison.
+P392 [Normal] The communication experiment reported 0.97 MB for IoT-only federated learning and 31.03 MB for multimodal federated learning over ten rounds and three clients. This highlights the communication cost associated with the multimodal configuration. The project therefore demonstrates the importance of evaluating predictive performance, client fairness and communication efficiency together rather than focusing on a single headline metric.
+P394 [Normal] 5.2 FUTURE SCOPE
+P396 [Normal] 5.2.1 Privacy-Preserving Federated Learning
+P397 [Normal] Future work can incorporate secure aggregation so that the server cannot directly inspect individual client updates. Differential privacy can also be studied by adding calibrated noise to updates or gradients and measuring the resulting privacy-utility trade-off. These mechanisms should be evaluated carefully because stronger privacy settings can reduce model performance.
+P399 [Normal] 5.2.2 Communication Optimization
+P400 [Normal] The communication overhead of the multimodal configuration can be reduced through update compression, quantization, sparsification, selective parameter sharing and adaptive communication frequency. Experiments should compare the reduction in transmitted bytes with any change in F1-score, PR-AUC and worst-client performance.
+P402 [Normal] 5.2.3 Improved Multi-Modal Fusion
+P403 [Normal] The modality comparison suggests that the fusion strategy deserves further investigation. Future experiments can evaluate late fusion, attention-based fusion, gated fusion and modality-specific normalization. The clinical branch should be checked for label alignment, missingness and domain shift before changing the architecture.
+P405 [Normal] 5.2.4 Broader Non-IID Evaluation
+P406 [Normal] The framework can be tested with more clients and a wider range of non-IID settings. Future analysis should report average, standard deviation and worst-client performance, along with per-client sample counts. This would provide a clearer picture of whether improvements are consistent across different hospital-like environments.
+P408 [Normal] 5.2.5 Realistic Smart-Hospital Validation
+P409 [Normal] A future extension can evaluate the framework using carefully governed data from multiple healthcare environments or realistic testbeds. Any such study must follow data-protection requirements, institutional approvals and appropriate anonymization or de-identification practices. Clinical and operational experts should review the definition of anomalies and the usefulness of model alerts.
+P422 [Normal] REFERENCES
+P424 [Normal] [1] B. McMahan, E. Moore, D. Ramage, S. Hampson, and B. A. y Arcas, “Communication-Efficient Learning of Deep Networks from Decentralized Data,” in *Proceedings of the 20th International Conference on Artificial Intelligence and Statistics (AISTATS)*, vol. 54, 2017, pp. 1273–1282.
+P425 [Normal] [2] W. L. Hamilton, R. Ying, and J. Leskovec, “Inductive Representation Learning on Large Graphs,” in *Advances in Neural Information Processing Systems (NeurIPS)*, vol. 30, 2017.
+P426 [Normal] [3] J. Devlin, M.-W. Chang, K. Lee, and K. Toutanova, “BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding,” in *Proceedings of NAACL-HLT*, 2019, pp. 4171–4186.
+P427 [Normal] [4] K. Huang, J. Altosaar, and R. R. Ranganath, “ClinicalBERT: Modeling Clinical Notes and Predicting Hospital Readmission,” arXiv:1904.05342, 2019.
+P428 [Normal] [5] E. Alsentzer, J. Murphy, W. Boag, W.-H. Weng, D. Jindi, T. Naumann, and M. McDermott, “Publicly Available Clinical BERT Embeddings,” in *Proceedings of the 2nd Clinical Natural Language Processing Workshop*, 2019, pp. 72–78.
+P429 [Normal] [6] M. A. Ferrag, O. Friha, D. Hamouda, L. Maglaras, and H. Janicke, “Edge-IIoTset: A New Comprehensive Realistic Cyber Security Dataset of IoT and IIoT Applications for Centralized and Federated Learning,” *IEEE Access*, vol. 10, pp. 40281–40306, 2022.
+P430 [Normal] [7] T. Li, A. K. Sahu, M. Zaheer, M. Sanjabi, A. Talwalkar, and V. Smith, “Federated Optimization in Heterogeneous Networks,” in *Proceedings of Machine Learning and Systems (MLSys)*, vol. 2, 2020.
+P431 [Normal] [8] Q. Li, Z. Wen, Z. Wu, S. Hu, N. Wang, Y. Li, X. Liu, and B. He, “A Survey on Federated Learning Systems: Vision, Hype and Reality for Data Privacy and Protection,” *IEEE Transactions on Knowledge and Data Engineering*, vol. 35, no. 4, pp. 3347–3366, 2023.
+P432 [Normal] [9] M. A. Ferrag, O. Friha, L. Maglaras, H. Janicke, and L. Shu, “Federated Deep Learning for Cyber Security in the Internet of Things: Concepts, Applications, and Experimental Analysis,” *IEEE Access*, vol. 9, pp. 138509–138542, 2021.
+P433 [Normal] [10] N. Rieke, J. Hancox, W. Li, F. Milletari, H. R. Roth, S. Albarqouni, et al., “The Future of Digital Health with Federated Learning,” *npj Digital Medicine*, vol. 3, Art. no. 119, 2020.
+P434 [Normal] [11] G. A. Kaissis, M. R. Makowski, D. Rückert, and R. F. Braren, “Secure, Privacy-Preserving and Federated Machine Learning in Medical Imaging,” *Nature Machine Intelligence*, vol. 2, pp. 305–311, 2020.
+P435 [Normal] [12] J. Davis and M. Goadrich, “The Relationship Between Precision-Recall and ROC Curves,” in *Proceedings of the 23rd International Conference on Machine Learning (ICML)*, 2006, pp. 233–240.
+P436 [Normal] [13] D. Yin, Y. Chen, R. Kannan, and P. Bartlett, “Byzantine-Robust Distributed Learning: Towards Optimal Statistical Rates,” in *Proceedings of the 35th International Conference on Machine Learning (ICML)*, PMLR, vol. 80, 2018, pp. 5650–5659.
+P437 [Normal] [14] P. Blanchard, E. M. El Mhamdi, R. Guerraoui, and J. Stainer, “Machine Learning with Adversaries: Byzantine Tolerant Gradient Descent,” in *Advances in Neural Information Processing Systems (NeurIPS)*, vol. 30, 2017.
+P438 [Normal] [15] L. Zhu, Z. Liu, and S. Han, “Deep Leakage from Gradients,” in *Advances in Neural Information Processing Systems (NeurIPS)*, vol. 32, 2019.
+P439 [Normal] [16] M. Abadi, A. Chu, I. Goodfellow, H. B. McMahan, I. Mironov, K. Talwar, and L. Zhang, “Deep Learning with Differential Privacy,” in *Proceedings of the 23rd ACM Conference on Computer and Communications Security (CCS)*, 2016, pp. 308–318.
+P440 [Normal] [17] K. A. Bonawitz et al., “Practical Secure Aggregation for Privacy-Preserving Machine Learning,” in *Proceedings of the ACM SIGSAC Conference on Computer and Communications Security (CCS)*, 2017, pp. 1175–1191.
+P441 [Normal] [18] P. Kairouz, H. B. McMahan, et al., “Advances and Open Problems in Federated Learning,” *Foundations and Trends in Machine Learning*, vol. 14, nos. 1–2, pp. 1–210, 2021.
+P442 [Normal] [19] X. Li, K. Huang, W. Yang, S. Wang, and Z. Zhang, “On the Convergence of FedAvg on Non-IID Data,” arXiv:1907.02189, 2019.
+P443 [Normal] [20] MTSamples, “Medical Transcription Sample Reports and Examples,” [Online]. Available: https://www.mtsamples.com/. [Accessed: Nov. 16, 2026].
+TABLE 0
+Sr. No. | Title of Chapter / Contents | Page No.
+ | CHAPTER 1: INTRODUCTION | 
+1.1 | Overview of the Project | 1
+1.2 | Problem Statement | 1
+1.3 | Objectives | 2
+1.4 | Scope of the Project | 3
+ | CHAPTER 2: LITERATURE SURVEY | 
+2.1 | Background and Related Concepts | 4
+2.2 | Existing System and Its Limitations | 6
+2.3 | Proposed System Overview | 6
+2.4 | Research Gap and Motivation | 7
+ | CHAPTER 3: SYSTEM DESIGN | 
+3.1 | System Requirements | 8
+3.2 | System Architecture | 9
+3.3 | Module Description | 10
+3.4 | Data Flow and Federated Workflow | 12
+ | CHAPTER 4: IMPLEMENTATION AND TESTING | 
+4.1 | Experimental Setup | 13
+4.2 | Implementation Methodology | 14
+4.3 | Evaluation Metrics | 15
+4.4 | Results and Discussion | 17
+4.5 | Testing and Validation | 18
+4.6 | Screenshots | 20
+ | CHAPTER 5: CONCLUSION AND FUTURE SCOPE | 
+5.1 | Conclusion | 22
+5.2 | Future Scope | 22
+ | REFERENCES | 24
+TABLE 1
+Existing approach | Potential limitation
+Centralized training | Requires raw data consolidation and centralized governance.
+Independent local models | Limited cross-client learning and potentially inconsistent performance.
+Flat IoT feature models | May not explicitly capture relationships among connected devices.
+Basic clinical text features | May lose contextual meaning in clinical language.
+Large multimodal federated models | Can increase communication, computation and integration complexity.
+TABLE 2
+Component | Requirement / purpose
+Development computer | A computer capable of running the selected Python environment and project dependencies.
+Memory (RAM) | Sufficient memory for loading the active dataset partitions, graph structures and model batches.
+Processor | Multi-core CPU for preprocessing, data loading and experiment orchestration.
+GPU (if used) | CUDA-compatible GPU may accelerate transformer and neural-network training; actual use must be confirmed from logs.
+Storage | Space for datasets, checkpoints, logs, model artifacts and generated result plots.
+Network / local simulation | A local or simulated communication mechanism for exchanging client updates with the aggregation server.
+TABLE 3
+Software / library | Purpose
+Python | Primary implementation language for data processing and model experimentation.
+PyTorch / TensorFlow | Deep-learning framework; retain only the framework actually used in the final implementation.
+Transformers | Loading and using the Bio_ClinicalBERT model, if used through Hugging Face.
+Graph-learning library | GraphSAGE model construction and neighbourhood aggregation; specify the actual library used.
+NumPy and Pandas | Numerical operations and tabular data handling.
+Scikit-learn | Evaluation metrics and supporting preprocessing utilities, if used.
+Matplotlib / Seaborn | Plots and visual analysis, if used.
+Version control | Tracking source-code changes and experiment versions.
+TABLE 4
+Experimental element | Recorded project configuration
+Application domain | Smart-hospital / IoT anomaly detection
+Federated participants | 3 simulated hospital clients
+Federated algorithm | Federated Averaging (FedAvg)
+Communication rounds | 10 rounds for the reported communication comparison
+IoT representation | GraphSAGE
+Clinical text representation | Bio_ClinicalBERT
+Modality settings | IoT-only, clinical-only and combined
+Robustness setting | Severe non-IID client distribution
+Primary reported metrics | F1-score, PR-AUC and communication volume
+TABLE 5
+Reported result | Value
+Federated IoT F1-score | 99.30%
+IoT-only F1-score | 99.26%
+PR-AUC | 0.9942
+Worst-client F1 under severe non-IID | 0.9630
+TABLE 6
+Modality configuration | Reported comparison score
+IoT-only | 97.74%
+Clinical-only | 50.33%
+Combined IoT + clinical | 97.64%
+TABLE 7
+Federated configuration | Communication volume | Experiment scope
+IoT-only FL | 0.97 MB | 10 rounds, 3 clients
+Multimodal FL | 31.03 MB | 10 rounds, 3 clients
+TABLE 8
+Test ID | Test activity | Expected outcome
+T01 | Load local client partition | Each simulated client loads its assigned data without exposing raw records to the server.
+T02 | Prepare IoT graph inputs | Graph nodes, edges and features are created in the expected format.
+T03 | Encode clinical text | Clinical text is tokenized and represented by the selected Bio_ClinicalBERT pipeline.
+T04 | Run local training | Each participating client completes its configured local training step.
+T05 | Aggregate updates | The server combines client updates using the configured FedAvg rule.
+T06 | Repeat federated rounds | The global model is updated across the configured rounds.
+T07 | Calculate evaluation metrics | F1-score and PR-AUC are generated from the evaluation outputs.
+T08 | Measure communication | Communication volume is recorded consistently for each configuration.

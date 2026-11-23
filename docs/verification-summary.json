@@ -1,0 +1,128 @@
+{
+  "date": "2026-11-16",
+  "backend": {
+    "passed": 31,
+    "failed": 0,
+    "warnings": 0,
+    "seconds": 90.93,
+    "scope": "API, ML, evaluation evidence, training configuration and setup regression tests; not the entire secure protocol/worker suite",
+    "final_changed_reader_rerun": {
+      "passed": 14,
+      "failed": 0,
+      "seconds": 63.48,
+      "overlaps_primary_run": true
+    }
+  },
+  "browser": {
+    "passed": 7,
+    "failed": 0,
+    "scope": "full browser suite with selected 224px model; includes actual accuracy display, Grad-CAM/PDF workflow and first-run setup"
+  },
+  "frontend_build": "passed",
+  "frontend_lint": "passed",
+  "npm_vulnerabilities": 0,
+  "pip_check": "passed",
+  "manifest_repeat": "exact SHA-256 match",
+  "secure_aggregation": {
+    "status": "Implemented / local",
+    "protocol": "Flower SecAgg+ / ChaCha20-HKDF v1",
+    "scope": "semi-honest non-colluding coordinator; shared host excluded",
+    "registered_clients": 3,
+    "minimum_contributors": 2,
+    "reconstruction_threshold": 2,
+    "verification_experiment": "secagg-verification",
+    "full_data_rounds": 1,
+    "protocol_bytes": 402499977,
+    "live_authenticated_endpoint": "verified"
+  },
+  "clinical_validation": "not established",
+  "patient_independence": "unverified; metadata unavailable",
+  "heuristic_checklist": {
+    "passed": 6,
+    "failed": 0,
+    "report": "docs/checks-after-fixes.log",
+    "reason": "Scoped source scanning, actual pytest execution, explicit requested palette policy; see IMPLEMENTATION.md",
+    "last_run_date": "2026-10-20"
+  },
+  "local_launcher": "ready on http://127.0.0.1:7351; authenticated selected-model evaluation verified",
+  "operator_accounts": {
+    "admin": 1,
+    "doctor": 5,
+    "all_logins_verified": true
+  },
+  "npm_audit_last_run_date": "2026-10-20",
+  "pip_check_last_run_date": "2026-10-21",
+  "selected_model": {
+    "model_version": "centralized-transfer-224-20261116",
+    "checkpoint_sha256": "7033a401bde3b63035773c489eeac4a3b4891afdbb4af93093cc972432d88fd1",
+    "manifest_sha256": "7b4e01e5e73fbbcb9d7714317246c9f11204a4e81e974f51e4112788e0681ffd",
+    "image_size": 224,
+    "algorithm": "centralized",
+    "normalization": "batchnorm",
+    "test": {
+      "accuracy": 0.9279279279279279,
+      "balanced_accuracy": 0.939635077566112,
+      "macro_precision": 0.9131467490842491,
+      "macro_recall": 0.939635077566112,
+      "macro_f1": 0.9243712427922954,
+      "per_class": {
+        "Adenocarcinoma": {
+          "sensitivity": 0.8787878787878788,
+          "specificity": 0.9615384615384616,
+          "support": 33
+        },
+        "Large Cell Carcinoma": {
+          "sensitivity": 0.9310344827586207,
+          "specificity": 0.9878048780487805,
+          "support": 29
+        },
+        "No Cancer": {
+          "sensitivity": 1.0,
+          "specificity": 0.9801980198019802,
+          "support": 10
+        },
+        "Squamous Cell Carcinoma": {
+          "sensitivity": 0.9487179487179487,
+          "specificity": 0.9722222222222222,
+          "support": 39
+        }
+      },
+      "confusion_matrix": [
+        [
+          29,
+          1,
+          1,
+          2
+        ],
+        [
+          2,
+          27,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          10,
+          0
+        ],
+        [
+          1,
+          0,
+          1,
+          37
+        ]
+      ],
+      "roc_auc": 0.9901819117426397,
+      "sample_count": 111,
+      "loss": 0.24804656763837948,
+      "inference_ms_per_image": 55.24922162163289
+    },
+    "best_round": 15,
+    "rounds_completed": 20,
+    "dp_enabled": false,
+    "secure_aggregation_enabled": false,
+    "notice": "Measured on a previously used research test split; patient independence and external clinical validity remain unverified."
+  },
+  "historical_full_validation": "docs/verification-summary-20261021.json"
+}

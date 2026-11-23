@@ -1,0 +1,281 @@
+"""
+combined_predictor.py  —  Fuse image and tabular predictions (Dynamic subclasses).
+
+Tabular model gives a single cancer_signal (probability of malignancy),
+which is spread across the cancer subtypes equally when fusing.
+
+Fusion weights:
+    image:   0.70  (primary diagnostic signal)
+    tabular: 0.30  (clinical support signal)
+"""
+
+import sys
+import os
+import json
+from typing import Optional
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+
+from ml.utils.config import CLASS_MAP_JSON
+
+IMAGE_WEIGHT   = 0.70
+TABULAR_WEIGHT = 0.30
+
+DISCLAIMER = (
+    "⚕ MEDICAL DISCLAIMER: This AI system is an educational/screening tool only. "
+    "It does NOT replace professional medical diagnosis. Results must be reviewed and "
+    "confirmed by a qualified radiologist and oncologist before any clinical decisions are made."
+)
+
+
+def _load_dynamic_classes():
+    """Load dynamic class names and map."""
+    class_names = ["No Cancer", "Adenocarcinoma", "Squamous Cell Carcinoma", "Large Cell Carcinoma"]
+    if os.path.isfile(CLASS_MAP_JSON):
+        try:
+            with open(CLASS_MAP_JSON, "r") as f:
+                mapping = json.load(f)
+            if "class_names" in mapping and mapping["class_names"]:
+                class_names = mapping["class_names"]
+        except Exception:
+            pass
+    return class_names
+
+
+def combine_predictions(
+    image_result:   Optional[dict],
+    tabular_result: Optional[dict],
+    request_data:   Optional[dict] = None,
+) -> dict:
+    """
+    Fuse image and tabular predictions into a single response dict.
+    Returns:
+        Flat dict with all fields needed by the FastAPI response.
+    """
+    has_image   = image_result   is not None and image_result.get("success",   False)
+    has_tabular = tabular_result is not None and tabular_result.get("success", False)
+
+    CLASS_NAMES = _load_dynamic_classes()
+    num_classes = len(CLASS_NAMES)
+    
+    # Non-cancer classes 
+    safe_labels = ["No Cancer", "Normal", "Benign"]
+    
+    _NO_CANCER_IDXS = [i for i, c in enumerate(CLASS_NAMES) if c in safe_labels]
+    _CANCER_IDXS    = [i for i, c in enumerate(CLASS_NAMES) if c not in safe_labels]
+    
+    # Default fallback if NO_CANCER not directly spotted
+    if not _NO_CANCER_IDXS:
+        _NO_CANCER_IDXS = [0]
+        if 0 in _CANCER_IDXS:
+            _CANCER_IDXS.remove(0)
+
+    if has_image and has_tabular:
+        img_probs = image_result.get("probabilities", {})
+        
+        img_no_cancer_prob = sum(img_probs.get(CLASS_NAMES[i], 0.0) for i in _NO_CANCER_IDXS)
+        img_cancer_prob    = sum(img_probs.get(CLASS_NAMES[i], 0.0) for i in _CANCER_IDXS)
+        
+        tab_cancer_prob    = tabular_result.get("cancer_signal", 0.0)
+        # Assuming tabular returns generic cancer_signal (1 output)
+        tab_no_cancer_prob = 1.0 - tab_cancer_prob
+
+        # Calculate overall cancer vs no cancer first
+        fused_cancer_prob    = (IMAGE_WEIGHT * img_cancer_prob) + (TABULAR_WEIGHT * tab_cancer_prob)
+        fused_no_cancer_prob = (IMAGE_WEIGHT * img_no_cancer_prob) + (TABULAR_WEIGHT * tab_no_cancer_prob)
+
+        # -- MEDICAL SAFETY RULE --
+        # If the medical image directly shows a tumor (cancer > no_cancer),
+        # do not let a low clinical/tabular risk score override it into a false negative.
+        if img_cancer_prob > img_no_cancer_prob and fused_cancer_prob <= fused_no_cancer_prob:
+            # Overrule tabular dilution: trust the image scan as empirical evidence
+            fused_cancer_prob    = img_cancer_prob
+            fused_no_cancer_prob = img_no_cancer_prob
+
+        fused_vec = [0.0] * num_classes
+        
+        # Distribute safe probability proportionally 
+        for idx in _NO_CANCER_IDXS:
+            subtype_name = CLASS_NAMES[idx]
+            if img_no_cancer_prob > 0.0001:
+                proportion = img_probs.get(subtype_name, 0.0) / img_no_cancer_prob
+            else:
+                proportion = 1.0 / max(len(_NO_CANCER_IDXS), 1)
+            fused_vec[idx] = fused_no_cancer_prob * proportion
+        
+        # Distribute the fused cancer probability among subtypes proportionally to image's subtype distribution
+        for idx in _CANCER_IDXS:
+            subtype_name = CLASS_NAMES[idx]
+            if img_cancer_prob > 0.0001:
+                proportion = img_probs.get(subtype_name, 0.0) / img_cancer_prob
+            else:
+                proportion = 1.0 / max(len(_CANCER_IDXS), 1)
+            fused_vec[idx] = fused_cancer_prob * proportion
+            
+        modality = "Image + Clinical"
+
+    elif has_image:
+        img_probs = image_result.get("probabilities", {})
+        fused_vec = [img_probs.get(c, 0.0) for c in CLASS_NAMES]
+        modality  = "Image Only"
+
+    else:
+        # Clinical-only fallback: spread tabular signal equally over cancer subtypes
+        t_signal  = tabular_result.get("cancer_signal", 0.3) if has_tabular else 0.3
+        no_cancer = 1.0 - t_signal
+        
+        fused_vec = [0.0] * num_classes
+        
+        for idx in _NO_CANCER_IDXS:
+            fused_vec[idx] = no_cancer / max(len(_NO_CANCER_IDXS), 1)
+            
+        for idx in _CANCER_IDXS:
+            fused_vec[idx] = t_signal / max(len(_CANCER_IDXS), 1)
+            
+        modality = "Clinical Only (no scan)"
+
+    # Normalize
+    total = sum(fused_vec)
+    if total > 0:
+        fused_vec = [v / total for v in fused_vec]
+
+    fused_cancer_prob_total = sum(fused_vec[i] for i in _CANCER_IDXS)
+    fused_no_cancer_prob    = sum(fused_vec[i] for i in _NO_CANCER_IDXS)
+
+    if fused_cancer_prob_total > fused_no_cancer_prob:
+        if _CANCER_IDXS:
+            pred_idx = int(max(_CANCER_IDXS, key=lambda i: fused_vec[i]))
+        else:
+            pred_idx = 0
+    else:
+        if _NO_CANCER_IDXS:
+            pred_idx = int(max(_NO_CANCER_IDXS, key=lambda i: fused_vec[i]))
+        else:
+            pred_idx = 0
+
+    pred_class     = CLASS_NAMES[pred_idx]
+    confidence     = round(fused_vec[pred_idx], 4)
+    cancer_present = pred_class not in safe_labels
+    
+    # Generic logic for risk level
+    if cancer_present and confidence > 0.8:
+        risk_level = "Critical"
+    elif cancer_present:
+        risk_level = "High"
+    else:
+        risk_level = "Low"
+
+    class_probs_combined = {CLASS_NAMES[i]: round(fused_vec[i], 4) for i in range(num_classes)}
+
+    gradcam_image = image_result.get("gradcam_image") if has_image else None
+
+    # Merge explanations from predictor if available, plus internal combination strings
+    explanation = _build_combined_explanation(
+        pred_class, confidence, cancer_present, modality,
+        image_result   if has_image   else None,
+        tabular_result if has_tabular else None,
+    )
+
+    # Risk score: sum of all cancer-subtype probabilities × 100
+    cancer_prob = sum(fused_vec[i] for i in _CANCER_IDXS)
+    risk_score  = min(round(cancer_prob * 100, 1), 99.9)
+
+    return {
+        # Core classification
+        "cancer_type":         pred_class,
+        "cancer_present":      cancer_present,
+        "risk_level":          risk_level,
+        "risk_score":          risk_score,
+        "confidence":          confidence,
+        "class_probabilities": class_probs_combined,
+
+        # Modality details
+        "modality":            modality,
+        "image_prediction":    image_result   if has_image   else None,
+        "tabular_prediction":  tabular_result if has_tabular else None,
+
+        # Explainability
+        "heatmap_url": gradcam_image, # Passed as heatmap_url here historically or returned properly
+        "gradcam_image": gradcam_image,
+        "explanation": explanation,
+
+        # Legacy fields (backward compat)
+        "tumor_probability":   round(cancer_prob * 100, 1),
+        "diagnosis":           _legacy_diagnosis(cancer_present, confidence),
+        "future_forecast":     _legacy_forecast(risk_level),
+        "primary_reasons":     explanation[:4],
+        "precautions":         _precautions(pred_class, cancer_present),
+        "solutions":           _solutions(pred_class, cancer_present),
+        "disclaimer":          DISCLAIMER,
+    }
+
+
+# ─── Helpers ──────────────────────────────────────────────────────────────────
+
+def _build_combined_explanation(pred_class, confidence, cancer_present,
+                                modality, image_res, tabular_res):
+    lines = []
+    pct = round(confidence * 100, 1)
+
+    lines.append(f"AI Analysis ({modality}): {pred_class} ({pct}% confidence).")
+
+    if image_res:
+        img_conf = round(image_res.get("confidence", 0) * 100, 1)
+        img_cls  = image_res.get("predicted_subtype", "Unknown")
+        lines.append(
+            f"Image model: {img_cls} ({img_conf}% confidence). "
+            f"Grad-CAM generated highlighting regions."
+        )
+
+    if tabular_res:
+        t_pct = round(tabular_res.get("cancer_signal", 0) * 100, 1)
+        lines.append(f"Clinical data: {t_pct}% malignancy signal from patient profile.")
+        for feat in tabular_res.get("top_risk_features", [])[:3]:
+            lines.append(f"  • {feat}")
+
+    if cancer_present:
+        lines.append("Cancer indicators detected — immediate specialist consultation recommended.")
+    else:
+        lines.append("No malignancy indicators detected — routine monitoring advised.")
+
+    return lines
+
+
+def _legacy_diagnosis(cancer_present: bool, confidence: float) -> str:
+    if cancer_present and confidence > 0.70:
+        return "Yes"
+    elif cancer_present and confidence > 0.45:
+        return "Inconclusive"
+    elif not cancer_present:
+        return "No"
+    return "Inconclusive"
+
+
+def _legacy_forecast(risk_level: str) -> str:
+    forecasts = {
+        "Low":      "Risk appears low. Maintain healthy habits and annual checkups.",
+        "Moderate": "Moderate concern detected. Follow-up imaging within 3–6 months recommended.",
+        "High":     "High concern. Oncology referral and biopsy should be arranged promptly.",
+        "Critical": "Critical finding. Seek immediate specialist evaluation without delay.",
+    }
+    return forecasts.get(risk_level, "Please consult a doctor for an accurate prognosis.")
+
+
+def _precautions(pred_class: str, cancer_present: bool) -> list:
+    base = ["Do not smoke or use tobacco products.", "Maintain a balanced diet and regular exercise."]
+    if cancer_present:
+        base += ["Schedule an urgent specialist appointment.", "Bring prior scan images to your appointment."]
+    return base
+
+
+def _solutions(pred_class: str, cancer_present: bool) -> list:
+    if cancer_present:
+        return [
+            "Consult an oncologist as soon as possible.",
+            "Request PET-CT or biopsy for definitive diagnosis.",
+            "Do not make treatment decisions without specialist confirmation.",
+        ]
+    return [
+        "Continue annual lung health checkups.",
+        "If new symptoms develop, revisit your doctor promptly.",
+    ]

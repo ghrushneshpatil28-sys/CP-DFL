@@ -1,0 +1,7 @@
+{
+  "previous_version": "centralized-verification",
+  "previous_checkpoint": "ml/outputs/experiments/centralized-verification/best.pt",
+  "sha256": "13e43f6e278c58ee43f6c428874217d986070ed3cfdfa115a60ef835f7f6f75e",
+  "previous_accuracy": 0.7567567567567568,
+  "rollback_command": ".\\backend\\venv\\Scripts\\python.exe -m ml.approve ml/outputs/experiments/centralized-verification/best.pt"
+}

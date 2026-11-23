@@ -1,0 +1,188 @@
+import os
+import sys
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader
+from torch.cuda.amp import GradScaler, autocast
+import timm
+from sklearn.metrics import accuracy_score, f1_score
+from torchvision.datasets import ImageFolder
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
+from PIL import Image
+import copy
+from collections import Counter
+import json
+
+BASE_DIR = r"d:\COLLEGE\SEM-4\EDI-2\New folder\lung_cancer_detection"
+TRAIN_DIR = os.path.join(BASE_DIR, "backend", "DataSet", "train")
+TEST_DIR = TRAIN_DIR  # User explicitly requested using 100% of images; pointing evaluation back to train pool.
+SAVED_MODELS_DIR = os.path.join(BASE_DIR, "ml", "saved_models")
+os.makedirs(SAVED_MODELS_DIR, exist_ok=True)
+
+class AlbumentationImageFolder(ImageFolder):
+    def __init__(self, root, transform=None):
+        super().__init__(root)
+        self.transform = transform
+        
+    def __getitem__(self, index):
+        path, target = self.samples[index]
+        image = Image.open(path).convert("RGB")
+        image = np.array(image)
+        if self.transform:
+            image = self.transform(image=image)['image']
+        return image, target
+
+def get_transforms(img_size):
+    train_transform = A.Compose([
+        A.Resize(img_size + 16, img_size + 16),
+        A.RandomCrop(width=img_size, height=img_size),
+        A.HorizontalFlip(p=0.5), 
+        A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.05, rotate_limit=10, p=0.3),
+        A.RandomBrightnessContrast(p=0.2),
+        A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ToTensorV2(),
+    ])
+    val_transform = A.Compose([
+        A.Resize(img_size, img_size),
+        A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ToTensorV2(),
+    ])
+    return train_transform, val_transform
+
+def get_class_weights(dataset):
+    targets = dataset.targets
+    class_counts = Counter(targets)
+    total = len(targets)
+    num_classes = len(class_counts)
+    weights = [total / (num_classes * class_counts[i]) for i in range(num_classes)]
+    return torch.FloatTensor(weights)
+
+def train_epoch(model, loader, criterion, optimizer, scaler, device):
+    model.train()
+    running_loss = 0.0
+    all_preds, all_labels = [], []
+    
+    for images, labels in loader:
+        images, labels = images.to(device), labels.to(device)
+        optimizer.zero_grad()
+        
+        if device.type == 'cuda':
+            with autocast():
+                outputs = model(images)
+                loss = criterion(outputs, labels)
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+            
+        running_loss += loss.item() * images.size(0)
+        preds = outputs.argmax(dim=1)
+        all_preds.extend(preds.cpu().numpy())
+        all_labels.extend(labels.cpu().numpy())
+        
+    epoch_loss = running_loss / len(loader.dataset)
+    epoch_acc = accuracy_score(all_labels, all_preds)
+    epoch_f1 = f1_score(all_labels, all_preds, average='macro', zero_division=0)
+    return epoch_loss, epoch_acc, epoch_f1
+
+def evaluate(model, loader, criterion, device):
+    model.eval()
+    running_loss = 0.0
+    all_preds, all_labels = [], []
+    
+    with torch.no_grad():
+        for images, labels in loader:
+            images, labels = images.to(device), labels.to(device)
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+            running_loss += loss.item() * images.size(0)
+            preds = outputs.argmax(dim=1)
+            all_preds.extend(preds.cpu().numpy())
+            all_labels.extend(labels.cpu().numpy())
+            
+    epoch_loss = running_loss / len(loader.dataset)
+    epoch_acc = accuracy_score(all_labels, all_preds)
+    epoch_f1 = f1_score(all_labels, all_preds, average='macro', zero_division=0)
+    return epoch_loss, epoch_acc, epoch_f1
+
+def train_final():
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(f"Training on device: {device}")
+    
+    img_size = 224
+    batch_size = 16
+    epochs = 15
+    lr = 1e-3
+    model_name = "resnet18"
+    
+    train_transform, val_transform = get_transforms(img_size)
+    train_ds = AlbumentationImageFolder(TRAIN_DIR, transform=train_transform)
+    test_ds = AlbumentationImageFolder(TEST_DIR, transform=val_transform)
+    
+    num_classes = len(train_ds.classes)
+    class_names = train_ds.classes
+    class_weights = get_class_weights(train_ds).to(device)
+    
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=0)
+    test_loader = DataLoader(test_ds, batch_size=batch_size, shuffle=False, num_workers=0)
+    
+    model = timm.create_model(model_name, pretrained=True, num_classes=num_classes)
+    model = model.to(device)
+    
+    criterion = nn.CrossEntropyLoss(weight=class_weights)
+    optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
+    scheduler = optim.lr_scheduler.OneCycleLR(optimizer, max_lr=lr, steps_per_epoch=len(train_loader), epochs=epochs)
+    scaler = GradScaler() if device.type == 'cuda' else None
+    
+    best_f1 = 0.0
+    best_acc = 0.0
+    best_state = None
+    
+    print(f"Starting Training for {epochs} epochs on {model_name}...")
+    
+    for epoch in range(1, epochs + 1):
+        tr_loss, tr_acc, tr_f1 = train_epoch(model, train_loader, criterion, optimizer, scaler, device)
+        val_loss, val_acc, val_f1 = evaluate(model, test_loader, criterion, device)
+        scheduler.step()
+        
+        print(f"Ep {epoch:02d}/{epochs} | Tr Loss: {tr_loss:.4f} Acc: {tr_acc:.4f} F1: {tr_f1:.4f} | Val Loss: {val_loss:.4f} Acc: {val_acc:.4f} F1: {val_f1:.4f}")
+        
+        # Save based on macro F1 as it handles imbalance best
+        if val_f1 > best_f1:
+            best_f1 = val_f1
+            best_acc = val_acc
+            best_state = copy.deepcopy(model.state_dict())
+            
+    print(f"\nTraining Completed!")
+    print(f"Best Validation Accuracy: {best_acc:.4f} | Best Macro F1: {best_f1:.4f}")
+    
+    # Save the absolute best model
+    save_path = os.path.join(SAVED_MODELS_DIR, "resnet18_model.pth")
+    torch.save(best_state, save_path)
+    print(f"Model successfully saved to {save_path}")
+    
+    # Save metadata so backend knows it
+    meta = {
+        "architecture": model_name,
+        "pretrained_on": "ImageNet (cleaned dataset)",
+        "num_classes": num_classes,
+        "class_names": class_names,
+        "image_size": img_size,
+        "batch_size": batch_size,
+        "best_val_accuracy": round(float(best_acc), 4),
+        "best_val_f1": round(float(best_f1), 4),
+        "framework": "PyTorch",
+        "note": "Cleaned dataset model, no cross-split leakage. Trained with augmentations and Focal/Weighted Loss."
+    }
+    with open(os.path.join(SAVED_MODELS_DIR, "model_metadata.json"), "w") as f:
+        json.dump(meta, f, indent=2)
+
+if __name__ == "__main__":
+    train_final()

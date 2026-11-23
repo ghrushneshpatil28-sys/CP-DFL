@@ -1,0 +1,4 @@
+{
+  "allow_purple": true,
+  "reason": "The approved project brief explicitly requests electric violet #7C3AED and soft lavender. Functional accessibility and reduced-motion checks still apply. Navigation is verified separately for each role in browser tests."
+}

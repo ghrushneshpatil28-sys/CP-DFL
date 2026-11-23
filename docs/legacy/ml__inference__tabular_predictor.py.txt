@@ -1,0 +1,267 @@
+"""
+tabular_predictor.py  —  Clinical data feature extractor and risk predictor.
+
+Extracts structured features from a PredictionRequest and provides:
+  - ML model probability (from trained RandomForest)  
+  - Feature importance explanation
+  - Risk signal for combined fusion
+
+Usage:
+    from ml.inference.tabular_predictor import TabularPredictor
+    tp = TabularPredictor()
+    result = tp.predict(request_data)
+"""
+
+import os
+import sys
+import json
+import numpy as np
+from typing import Optional
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+
+from ml.utils.config import (
+    TABULAR_MODEL_PATH, SCALER_PATH, SAVED_MODELS_DIR
+)
+
+# Feature column order — must match train_tabular.py
+TABULAR_FEATURES = [
+    "age", "gender_enc", "smoking_status_enc", "cigarettes_per_day",
+    "years_smoking", "family_history", "symptom_count",
+    "has_severe_symptom", "has_cough", "has_weight_loss",
+    "daily_tobacco", "daily_alcohol",
+]
+
+# Human-readable feature names for explanation
+FEATURE_DISPLAY = {
+    "age": "Age",
+    "gender_enc": "Gender",
+    "smoking_status_enc": "Smoking Status",
+    "cigarettes_per_day": "Cigarettes per Day",
+    "years_smoking": "Years Smoking",
+    "family_history": "Family History of Cancer",
+    "symptom_count": "Number of Symptoms",
+    "has_severe_symptom": "Severe Symptom Present",
+    "has_cough": "Chronic Cough",
+    "has_weight_loss": "Unexplained Weight Loss",
+    "daily_tobacco": "Daily Tobacco Use",
+    "daily_alcohol": "Daily Alcohol Use",
+}
+
+TABULAR_CLASS_NAMES = ["No / Benign", "Malignant"]
+
+
+class TabularPredictor:
+    """
+    Extracts features from a PredictionRequest dict and runs the tabular model.
+    """
+
+    def __init__(self):
+        self._model  = None
+        self._scaler = None
+        self._loaded = False
+        self._load()
+
+    def _load(self):
+        try:
+            import joblib
+            self._model  = joblib.load(TABULAR_MODEL_PATH)
+            self._scaler = joblib.load(SCALER_PATH)
+            self._loaded = True
+            print("[TabularPredictor] Model loaded.")
+        except Exception as e:
+            print(f"[TabularPredictor] WARNING: Could not load model: {e}")
+            print("  Run: python ml/training/train_tabular.py")
+            self._loaded = False
+
+    def _extract_features(self, data: dict) -> np.ndarray:
+        """
+        Convert a PredictionRequest dict → feature vector matching TABULAR_FEATURES.
+        """
+        # Age
+        age = int(data.get("age", 40))
+
+        # Gender encoding: Female=0, Male=1, Other=2
+        gender_map = {"female": 0, "male": 1, "other": 2}
+        gender_enc = gender_map.get(str(data.get("gender", "Male")).lower(), 1)
+
+        # Smoking: Never=0, Former=1, Current=2
+        smoke_map = {"never": 0, "former": 1, "current": 2}
+        smoke_enc = smoke_map.get(str(data.get("smoking_history", "Never")).lower(), 0)
+
+        cigs  = int(data.get("cigarettes_per_day", 0))
+        years = int(data.get("years_smoking", 0))
+        family = 1 if data.get("family_history", False) else 0
+
+        # Symptoms
+        symptoms: dict = data.get("symptoms", {})
+        sym_count = len(symptoms)
+        severity_vals = [str(v).lower() for v in symptoms.values()]
+        has_severe = 1 if "severe" in severity_vals else 0
+
+        # Check for specific symptoms (case-insensitive)
+        sym_keys_lower = [str(k).lower() for k in symptoms.keys()]
+        has_cough   = 1 if any("cough" in k for k in sym_keys_lower) else 0
+        has_wloss   = 1 if any("weight" in k for k in sym_keys_lower) else 0
+
+        # Daily intakes
+        intakes: dict = data.get("daily_mouth_intake", {})
+        intakes_lower = {str(k).lower(): str(v).lower() for k, v in intakes.items()}
+        daily_tobacco = 1 if any(("tobacco" in k or "betel" in k or "nicotine" in k)
+                                  and v == "daily"
+                                  for k, v in intakes_lower.items()) else 0
+        daily_alcohol = 1 if any("alcohol" in k and v == "daily"
+                                  for k, v in intakes_lower.items()) else 0
+
+        vec = np.array([
+            age, gender_enc, smoke_enc, cigs, years, family,
+            sym_count, has_severe, has_cough, has_wloss,
+            daily_tobacco, daily_alcohol,
+        ], dtype=np.float32)
+
+        return vec
+
+    def predict(self, request_data: dict) -> dict:
+        """
+        Run tabular ML prediction.
+
+        Returns:
+            {
+                "success": bool,
+                "predicted_class": str,
+                "cancer_signal": float,   # 0.0–1.0 probability of malignancy
+                "feature_values": dict,
+                "top_risk_features": list[str],
+                "explanation": list[str],
+                "error": str | None,
+            }
+        """
+        features = self._extract_features(request_data)
+
+        # Feature dict for display
+        feature_values = {
+            FEATURE_DISPLAY.get(k, k): float(v)
+            for k, v in zip(TABULAR_FEATURES, features)
+        }
+
+        if not self._loaded:
+            # Fallback: use simple heuristic from features
+            cancer_signal = _heuristic_signal(features)
+            pred_class = TABULAR_CLASS_NAMES[1 if cancer_signal > 0.5 else 0]
+            return {
+                "success": True,
+                "predicted_class": pred_class,
+                "cancer_signal": round(float(cancer_signal), 4),
+                "feature_values": feature_values,
+                "top_risk_features": _heuristic_top_features(feature_values),
+                "explanation": [
+                    "Tabular model not loaded — using rule-based fallback.",
+                    "Run: python ml/training/train_tabular.py to train the tabular model.",
+                ],
+                "error": None,
+            }
+
+        try:
+            scaled = self._scaler.transform(features.reshape(1, -1))
+            proba  = self._model.predict_proba(scaled)[0]
+            cancer_signal = float(proba[1])   # P(malignant)
+            pred_idx   = int(np.argmax(proba))
+            pred_class = TABULAR_CLASS_NAMES[pred_idx]
+
+            # Feature importance explanation
+            top_features = self._get_top_features(features)
+            explanation  = _build_tabular_explanation(pred_class, cancer_signal, top_features)
+
+            return {
+                "success": True,
+                "predicted_class": pred_class,
+                "cancer_signal": round(cancer_signal, 4),
+                "feature_values": feature_values,
+                "top_risk_features": top_features,
+                "explanation": explanation,
+                "error": None,
+            }
+
+        except Exception as e:
+            return {
+                "success": False,
+                "predicted_class": "Unknown",
+                "cancer_signal": 0.0,
+                "feature_values": feature_values,
+                "top_risk_features": [],
+                "explanation": [f"Tabular prediction error: {str(e)}"],
+                "error": str(e),
+            }
+
+    def _get_top_features(self, features: np.ndarray, top_n: int = 4) -> list:
+        """Return top risk factor names using model feature importances."""
+        try:
+            if hasattr(self._model, "feature_importances_"):
+                importances = self._model.feature_importances_
+                sorted_idx  = np.argsort(importances)[::-1]
+                result = []
+                for i in sorted_idx[:top_n]:
+                    fname = FEATURE_DISPLAY.get(TABULAR_FEATURES[i], TABULAR_FEATURES[i])
+                    val   = features[i]
+                    result.append(f"{fname} (value={val:.0f}, importance={importances[i]:.3f})")
+                return result
+            elif hasattr(self._model, "coef_"):
+                coefs = np.abs(self._model.coef_[0])
+                sorted_idx = np.argsort(coefs)[::-1]
+                result = []
+                for i in sorted_idx[:top_n]:
+                    fname = FEATURE_DISPLAY.get(TABULAR_FEATURES[i], TABULAR_FEATURES[i])
+                    result.append(f"{fname} (coef={coefs[i]:.3f})")
+                return result
+        except Exception:
+            pass
+        return []
+
+
+# ─── Helpers ──────────────────────────────────────────────────────────────────
+
+def _heuristic_signal(features: np.ndarray) -> float:
+    """Simple weighted sum fallback when model is not loaded."""
+    age, gender, smoke, cigs, years, family, sym_cnt, severe, cough, wloss, tobacco, alcohol = features
+    score = 0.0
+    score += min(age / 80, 1.0) * 0.15
+    score += (smoke / 2.0) * 0.30
+    score += family * 0.12
+    score += min(sym_cnt / 6, 1.0) * 0.20
+    score += severe * 0.10
+    score += wloss  * 0.08
+    score += tobacco * 0.05
+    return min(score, 0.99)
+
+
+def _heuristic_top_features(feature_values: dict) -> list:
+    """Return top features by raw value weight for heuristic fallback."""
+    return [f"{k}: {v}" for k, v in list(feature_values.items())[:4]]
+
+
+def _build_tabular_explanation(pred_class: str, signal: float, top_features: list) -> list:
+    pct = round(signal * 100, 1)
+    lines = []
+    if pred_class == "Malignant":
+        lines.append(f"Clinical data analysis indicates a {pct}% malignancy signal.")
+        lines.append("Key risk factors from your clinical profile:")
+    else:
+        lines.append(f"Clinical data shows a {pct}% cancer probability signal.")
+        lines.append("Your clinical profile shows the following major factors:")
+
+    for feat in top_features:
+        lines.append(f"  • {feat}")
+
+    lines.append("Note: Clinical data alone is insufficient for diagnosis — imaging confirmation required.")
+    return lines
+
+
+# ─── Singleton ────────────────────────────────────────────────────────────────
+_tabular_instance: Optional[TabularPredictor] = None
+
+
+def get_tabular_predictor() -> TabularPredictor:
+    global _tabular_instance
+    if _tabular_instance is None:
+        _tabular_instance = TabularPredictor()
+    return _tabular_instance

@@ -1,0 +1,94 @@
+import os
+import hashlib
+import json
+from collections import defaultdict
+from PIL import Image
+
+BASE_DIR = r"d:\COLLEGE\SEM-4\EDI-2\New folder\lung_cancer_detection\backend\DataSet"
+SPLITS = ["train", "valid", "test"]
+
+def compute_hash(filepath):
+    hasher = hashlib.md5()
+    try:
+        with open(filepath, 'rb') as afile:
+            buf = afile.read()
+            hasher.update(buf)
+        return hasher.hexdigest()
+    except Exception:
+        return None
+
+def audit_dataset():
+    stats = {}
+    total_hashes = defaultdict(list)
+    corrupted = []
+    suspicious = []
+    
+    for split in SPLITS:
+        split_dir = os.path.join(BASE_DIR, split)
+        if not os.path.exists(split_dir):
+            continue
+        
+        split_stats = {}
+        for class_folder in os.listdir(split_dir):
+            class_dir = os.path.join(split_dir, class_folder)
+            if not os.path.isdir(class_dir):
+                continue
+            
+            files = os.listdir(class_dir)
+            split_stats[class_folder] = len(files)
+            
+            for f in files:
+                filepath = os.path.join(class_dir, f)
+                
+                # Check corruption/suspicious
+                try:
+                    with Image.open(filepath) as img:
+                        img.verify()  # check if valid
+                except Exception as e:
+                    corrupted.append(filepath)
+                    continue
+                
+                try:
+                    with Image.open(filepath) as img:
+                        w, h = img.size
+                        channels = len(img.getbands())
+                        if w < 64 or h < 64:
+                            suspicious.append((filepath, "small_size", f"{w}x{h}"))
+                except Exception as e:
+                    pass
+                
+                # Check hash for duplicates
+                file_hash = compute_hash(filepath)
+                if file_hash:
+                    total_hashes[file_hash].append(filepath)
+                    
+        stats[split] = split_stats
+
+    # Duplicates Analysis
+    duplicates = {k: v for k, v in total_hashes.items() if len(v) > 1}
+    cross_split_dupes = []
+    intra_split_dupes = []
+    
+    for h, paths in duplicates.items():
+        splits_involved = set([p.split(os.sep)[-3] for p in paths])
+        if len(splits_involved) > 1:
+            cross_split_dupes.append(paths)
+        else:
+            intra_split_dupes.append(paths)
+
+    report = {
+        "class_distribution": stats,
+        "corrupted_files": len(corrupted),
+        "suspicious_files": len(suspicious),
+        "total_duplicates": len(duplicates),
+        "cross_split_duplicates": len(cross_split_dupes),
+        "intra_split_duplicates": len(intra_split_dupes)
+    }
+
+    with open("dataset_audit_report.json", "w") as rf:
+        json.dump(report, rf, indent=4)
+        
+    print("Audit complete. Report saved to dataset_audit_report.json")
+
+if __name__ == "__main__":
+    audit_dataset()

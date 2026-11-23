@@ -1,0 +1,55 @@
+"""
+ml_service.py  —  Clinical risk analysis + ML combined prediction.
+Conforms strictly to the requested ResNet18 JSON format.
+"""
+
+import os
+import sys
+
+_BACKEND_DIR  = os.path.dirname(os.path.abspath(__file__))
+_PROJECT_ROOT = os.path.dirname(_BACKEND_DIR)
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
+
+from schemas import PredictionRequest, PredictionResponse
+
+def analyze_risk(data: PredictionRequest, image_analysis: dict = None) -> PredictionResponse:
+    """
+    Main prediction function called by main.py.
+    """
+    # ── Step 1: Tabular ML prediction ─────────────────────────────────────────
+    tabular_result = None
+    try:
+        from ml.inference.tabular_predictor import get_tabular_predictor
+        tp = get_tabular_predictor()
+        tabular_result = tp.predict(data.model_dump())
+    except Exception:
+        tabular_result = None
+
+    # ── Step 2: Use image ML result ───────────────────────────────────────────
+    image_ml_result = None
+    if image_analysis and image_analysis.get("ml_result"):
+        image_ml_result = image_analysis["ml_result"]
+
+    # ── Step 3: Combined prediction ───────────────────────────────────────────
+    from ml.inference.combined_predictor import combine_predictions
+    combined = combine_predictions(image_ml_result, tabular_result, data.model_dump())
+
+    # Map to new strict schema
+    predicted_subtype = combined.get("cancer_type", "Unknown")
+    confidence        = combined.get("confidence", 0.0)
+    probabilities     = combined.get("class_probabilities", {})
+    gradcam_image     = combined.get("gradcam_image")
+    
+    # Generate fusion string
+    explanation_list  = combined.get("explanation", [])
+    fusion_exp        = " ".join(explanation_list) if explanation_list else "Analysis complete."
+
+    return PredictionResponse(
+        predicted_subtype=predicted_subtype,
+        confidence=confidence,
+        probabilities=probabilities,
+        gradcam_image=gradcam_image,
+        fusion_explanation=fusion_exp,
+        model="ResNet18"
+    )

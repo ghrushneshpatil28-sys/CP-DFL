@@ -1,0 +1,336 @@
+P0 [Normal] A COURSE PROJECT REPORT
+P1 [Normal] on
+P2 [Normal] “PULSAR: DISTRIBUTED LUNG CANCER IMAGE CLASSIFICATION USING PRIVACY-PRESERVING FEDERATED LEARNING”
+P3 [Normal] SUBMITTED IN PARTIAL FULFILLMENT OF THE REQUIREMENTS FOR THE DEGREE OF
+P4 [Normal] BACHELOR OF TECHNOLOGY IN
+P5 [Normal] COMPUTER SCIENCE & ENGINEERING (ARTIFICIAL INTELLIGENCE)
+P6 [Normal] OF
+P7 [Normal] VISHWAKARMA INSTITUTE OF TECHNOLOGY
+P8 [Normal] Savitribai Phule Pune University
+P10 [Normal] Lalit More (12411598)
+P11 [Normal] Ghrushnesh Patil (12411658)
+P12 [Normal] Saksham Moon (12414037)
+P13 [Normal] Pranav Panure (12414949)
+P14 [Normal] UNDER THE GUIDANCE OF
+P15 [Normal] Prof. Jayshree Bedade
+P16 [Normal] DEPARTMENT OF COMPUTER SCIENCE & ENGINEERING
+P17 [Normal] (ARTIFICIAL INTELLIGENCE)
+P18 [Normal] BANSILAL RAMNATH AGARWAL CHARITABLE TRUST’S
+P19 [Normal] VISHWAKARMA INSTITUTE OF TECHNOLOGY
+P20 [Normal] (An Autonomous Institute affiliated to Savitribai Phule Pune University)
+P21 [Normal] PUNE – 411037
+P22 [Normal] ACADEMIC YEAR 2026–27
+P24 [Heading 1] CERTIFICATE
+P25 [Normal] This is to certify that the Course Project titled “PULSAR: Distributed Lung Cancer Image Classification Using Privacy-Preserving Federated Learning”, submitted by Lalit More (12411598), Ghrushnesh Patil (12411658), Saksham Moon (12414037), and Pranav Panure (12414949), is in partial fulfillment of the requirements for the award of the Degree of Bachelor of Technology in Computer Science and Engineering (Artificial Intelligence) for the course subject Distributed and Federated Learning (DFL), at Vishwakarma Institute of Technology, affiliated to Savitribai Phule Pune University. This project report is a record of the work carried out by the above-mentioned students under the guidance of Prof. Jayshree Bedade during the academic year 2026–27.
+P29 [Normal] Place: Pune
+P30 [Normal] Date: ____________________
+P32 [Heading 1] ACKNOWLEDGEMENT
+P33 [Normal] We express our sincere gratitude to everyone who supported us during the development and documentation of this course project, “PULSAR: Distributed Lung Cancer Image Classification Using Privacy-Preserving Federated Learning.”
+P34 [Normal] We are especially thankful to our internal guide, Prof. Jayshree Bedade, for her guidance, constructive suggestions, and support throughout the project. Her feedback helped us examine the technical design carefully and present the implementation with appropriate research boundaries.
+P35 [Normal] We also extend our gratitude to the Head of the Department, Prof. Dr. Nilesh P. Sable, and the Department of Computer Science and Engineering (Artificial Intelligence), Vishwakarma Institute of Technology, Pune, for providing the academic environment and facilities required to undertake this work.
+P36 [Normal] We acknowledge the developers and research communities behind PyTorch, torchvision, Flower, Opacus, FastAPI, React, SQLAlchemy, and the cryptographic libraries used in the project. Their documentation and open-source contributions supported the implementation and verification of the system.
+P37 [Normal] Finally, we thank our classmates, friends, and family members for their encouragement. We accept responsibility for the contents of this report and have attempted to distinguish implemented functionality, measured results, and future research work clearly.
+P38 [Normal] Lalit More (12411598)
+P39 [Normal] Ghrushnesh Patil (12411658)
+P40 [Normal] Saksham Moon (12414037)
+P41 [Normal] Pranav Panure (12414949)
+P43 [Heading 1] ABSTRACT
+P44 [Normal] Medical image classification research increasingly explores distributed learning methods that allow multiple data holders to contribute to a shared model without routinely transferring their raw training images to a central repository. This course project presents PULSAR, a research-oriented application for lung image classification and federated learning experimentation. The system combines a doctor-oriented patient-record workflow, image-based classification, Grad-CAM visual explanations, and a research pipeline for comparing centralized and federated model training.
+P45 [Normal] The application uses a single ResNet18 convolutional neural network with a four-class output layer. Centralized training, Federated Averaging (FedAvg), and Federated Proximal (FedProx) are treated as different training strategies using the same model architecture. Federated experiments use three simulated hospital clients with non-identically distributed data partitions. Flower provides the federated orchestration and secure aggregation workflow. An experimental Opacus-based DP-SGD path applies per-sample gradient processing, clipping, noise, and Rényi Differential Privacy accounting within the documented mechanism scope. The application includes React-based Admin and Doctor workspaces, a FastAPI backend, SQLite persistence, protected image/report access, and a separate worker for long-running experiments.
+P46 [Normal] The selected inference checkpoint achieved 75.68% accuracy, corresponding to 84 correct predictions among 111 held-out images in the documented evaluation. This is an aggregate result on a particular test set and must not be interpreted as the probability that an individual patient has cancer. A separate one-round secure verification experiment recorded 36.04% accuracy; it is a distinct experiment and is not the active model's accuracy. The project is a local research prototype using simulated clients. It has not established clinical validity, regulatory approval, deployment across independent hospitals, or a production privacy guarantee against every adversary.
+P47 [Normal] The project demonstrates an integrated implementation of image classification, federated optimization, secure aggregation, experimental differential privacy, explainability, and application-level access controls. Further work requires patient-independent and external validation, larger and better-documented datasets, multi-host deployment, independent security review, and a complete production privacy policy.
+P49 [Heading 1] TABLE OF CONTENTS
+P52 [Heading 1] CHAPTER 1: INTRODUCTION
+P53 [Heading 2] 1.1 Overview of the Project
+P54 [Normal] PULSAR is a research-oriented software application developed to study lung image classification and distributed model training through federated learning. It brings together three connected areas: a medical-image analysis workflow for doctors, an application layer for managing research records, and an experimental learning pipeline that compares centralized and federated optimization. The project is designed as a course project and proof of implementation, not as a clinically approved diagnostic product.
+P55 [Normal] The image-classification component uses ResNet18, a convolutional neural network based on residual learning. The active classifier has one four-class output head. The same model family is used for centralized training, FedAvg, and FedProx experiments. Therefore, these approaches represent different ways of training and updating a model rather than three different neural-network architectures.
+P56 [Normal] The federated workflow represents three hospitals as separate local clients: Hospital A, Hospital B, and Hospital C. Each client performs local optimization on its assigned partition. The coordinator combines client contributions to produce an updated global model. The project also includes a Flower SecAgg+ workflow intended to limit the coordinator's visibility into individual unmasked model updates, and an experimental DP-SGD path using Opacus.
+P57 [Normal] Alongside the research pipeline, PULSAR provides Admin and Doctor roles. Doctors can manage patient records, record visits and follow-ups, upload supported images, review model output and Grad-CAM visualizations, add observations, and generate PDF reports. Admins manage doctor accounts and inspect aggregate application and experiment information. Patients are records in the system; they do not have login accounts.
+P58 [List Bullet] Application identity: PULSAR.
+P59 [List Bullet] Core classifier: ResNet18 with four output classes.
+P60 [List Bullet] Federated participants: three simulated hospital clients.
+P61 [List Bullet] Main research methods: centralized training, FedAvg, FedProx, secure aggregation, and experimental DP-SGD.
+P62 [List Bullet] Backend persistence: SQLite through SQLAlchemy; frontend: React; API: FastAPI.
+P63 [Heading 2] 1.2 Problem Statement
+P64 [Normal] Medical institutions may hold sensitive image datasets that cannot be freely pooled because of privacy, governance, operational, and institutional constraints. A conventional centralized machine-learning workflow requires data to be collected at one location before training. This can create data-transfer and data-governance challenges, particularly when the data originates from multiple hospitals.
+P65 [Normal] Federated learning offers an alternative training arrangement in which participating clients retain their local training samples and communicate model updates or protocol messages to a coordinator. However, federated learning alone does not guarantee privacy. Individual model updates may reveal information, and a coordinator may gain access to more information than intended unless the aggregation protocol and threat model are considered.
+P66 [Normal] Another challenge is that a classification result can be misunderstood as a confirmed medical diagnosis. Dataset-level accuracy does not measure certainty for an individual patient, and a visual explanation does not prove that a model has identified a tumour or clinically meaningful region. A reliable research prototype must therefore communicate its evaluation limits and separate image-model output from doctor-entered clinical observations.
+P67 [Normal] The problem addressed by PULSAR is to implement and evaluate a local research system that supports lung-image classification and compares centralized and federated training while exploring secure aggregation and differential privacy as distinct protection mechanisms. The implementation must also provide controlled access to patient records and preserve a clear boundary between experimental outputs and clinical decisions.
+P68 [Heading 2] 1.3 Objectives
+P69 [Normal] The primary objective is to design and implement a working research prototype that combines lung image classification with federated learning experimentation. The project objectives are:
+P70 [List Bullet] Implement a canonical ResNet18 classifier with a four-class output contract and strict checkpoint metadata validation.
+P71 [List Bullet] Develop centralized, FedAvg, and FedProx training paths using a common model architecture and shared training/evaluation engine.
+P72 [List Bullet] Simulate three hospital clients with reproducible, non-IID data partitions and perform actual local optimization and model aggregation.
+P73 [List Bullet] Integrate Flower SecAgg+ to test aggregate-only visibility at the coordinator boundary under a documented semi-honest threat model.
+P74 [List Bullet] Integrate experimental Opacus DP-SGD with per-sample gradient processing, clipping, noise addition, and cumulative RDP accounting.
+P75 [List Bullet] Provide Grad-CAM visualizations to help users inspect image regions associated with a selected class score.
+P76 [List Bullet] Develop Admin and Doctor workflows with authentication, role checks, doctor-owned patient records, protected uploads, analysis history, and PDF reporting.
+P77 [List Bullet] Record experiment configurations, metrics, results, and failures persistently so that displayed research results are based on stored evidence.
+P78 [Heading 2] 1.4 Scope of the Project
+P79 [Normal] The scope covers a local research application and controlled experimentation. It includes the application interface, API, local relational persistence, image upload and inference, explainability, centralized and federated training, secure aggregation integration, and an experimental differential-privacy path. The system is intended to support learning, demonstration, and further research in privacy-aware distributed model training.
+P80 [Normal] The federated clients are simulated as three hospital participants on a shared local machine. The project therefore demonstrates client-specific local training and aggregation logic, but it does not represent three independently administered hospitals connected over production networks. Similarly, the secure aggregation tests verify the documented process and message boundary; they do not establish protection against a system administrator who controls the shared host.
+P81 [Normal] The model predicts one of four dataset labels from a supported image. It does not perform cancer staging, tumour segmentation, treatment recommendation, clinical-risk fusion, or automatic diagnosis. Doctor-entered medical history and observations are stored for record keeping and review and are not secretly combined with image probabilities to generate another score.
+P82 [Normal] Out of scope are regulatory approval, clinical deployment, independent hospital onboarding, a validated DICOM workflow, external clinical validation, and a production-grade privacy governance programme. These limitations are important because technical operation in a local test environment is not equivalent to clinical or institutional readiness.
+P83 [List Bullet] Included: image classification, Grad-CAM, patient record workflows, experiment tracking, three simulated clients, FedAvg/FedProx, SecAgg+, experimental DP-SGD.
+P84 [List Bullet] Not claimed: clinical diagnostic accuracy, patient-level certainty, independent multi-hospital deployment, universal privacy protection, regulatory approval.
+P86 [Heading 1] CHAPTER 2: LITERATURE SURVEY
+P87 [Heading 2] 2.1 Existing System and Its Limitations
+P88 [Normal] Traditional centralized training collects training images in a single repository and optimizes a model over the pooled dataset. This arrangement can simplify data loading, model management, and evaluation. Its limitation in multi-institution settings is that it assumes the training data can be transferred and governed centrally. Such an assumption may not be suitable for every hospital or research collaboration.
+P89 [Normal] Federated learning changes the training topology. A coordinator distributes a global model to participating clients; each client performs local optimization and returns an update; the coordinator aggregates the updates to form the next global model. FedAvg uses a sample-weighted average of client model parameters. FedProx adds a proximal term to the local objective to discourage excessive movement away from the current global parameters, which can be useful when client data distributions differ.
+P90 [Normal] Basic federated learning does not automatically hide information contained in model updates. Secure aggregation addresses a different concern by allowing a coordinator to recover a permitted aggregate without directly inspecting each individual unmasked contribution, subject to protocol assumptions. Differential privacy is also distinct: it bounds the influence of individual records under a defined mechanism and accounting model. It requires explicit choices about the privacy unit, clipping, noise, sampling, composition, and randomness.
+P91 [Normal] Image classifiers also have limitations beyond privacy. Their performance depends on dataset quality, label consistency, patient-level split isolation, image modality, preprocessing, class balance, and external representativeness. A model may achieve a particular test accuracy while still failing to generalize to a new hospital or patient population. Grad-CAM can provide a visual indication of regions associated with a class score, but it is not a substitute for clinical interpretation.
+P92 [Heading 2] 2.1 Existing System and Its Limitations (Continued)
+P93 [Normal] Several practical limitations arise when these techniques are implemented without a complete application and evidence workflow. A model-training script alone does not provide authenticated access, patient ownership, protected image retrieval, experiment provenance, or reproducible reporting. Conversely, a polished interface does not prove that the underlying metrics are genuine or that the model was trained using the stated data partition.
+P94 [Normal] PULSAR's implementation documentation records specific safeguards against these problems. The dataset workflow uses byte and pixel hashing, duplicate grouping, reproducible manifests, and checks for split overlap. Checkpoint loading validates metadata and class mapping instead of silently loading an incompatible model. The application also separates image-model results from doctor observations and removes retired combined/tabular risk paths.
+P95 [Normal] The project records limitations rather than treating every technology as an absolute guarantee. The hospital clients share one host; the secure aggregation threat model excludes a host administrator and client collusion; DP-SGD is experimental and uses a documented limited mechanism; and external patient-independent validation is still required. These boundaries are part of the technical evaluation, not optional disclaimers.
+P96 [List Bullet] Centralized learning: straightforward optimization, but requires centralized access to training data.
+P97 [List Bullet] Plain federated learning: avoids routine raw-image transfer, but individual updates may still expose information.
+P98 [List Bullet] Secure aggregation: protects individual update visibility under protocol assumptions; it is not equivalent to transport encryption or differential privacy.
+P99 [List Bullet] Differential privacy: provides a formal mechanism-specific privacy bound; it is not a generic property of all federated training.
+P100 [List Bullet] Image explainability: Grad-CAM highlights class-associated regions but does not establish clinical localization or diagnosis.
+P101 [Heading 2] 2.2 Proposed System Overview
+P102 [Normal] PULSAR proposes an integrated research workflow in which the user-facing application and the training research pipeline are connected through a persistent backend. The React interface provides role-specific workspaces. FastAPI handles authentication, validation, business operations, and protected resource access. SQLite stores application records and experiment metadata. A separate Python worker processes queued training jobs so that long-running model training does not occupy an API request handler.
+P103 [Normal] For image analysis, an authorized doctor selects a patient record and uploads a supported PNG or JPEG image. The backend validates the file, stores it in protected storage, loads the selected ResNet18 checkpoint through a strict metadata contract, and produces class probabilities. A Grad-CAM heatmap is generated for explainability. The doctor can review the result, add observations, and generate a protected PDF report.
+P104 [Normal] For federated research, the coordinator distributes the global model to three local client processes. Each client trains on its own partition. In ordinary FedAvg/FedProx experiments, model updates are aggregated according to the selected strategy. In secure experiments, the Flower SecAgg+ protocol and client-side masking adapter are used so the coordinator's strategy receives the recovered aggregate rather than individual unmasked client models. The DP path separately applies Opacus-based gradient processing and accounting.
+P105 [Normal] The proposed system emphasizes traceability. Experiment configurations, round metrics, outputs, checkpoints, and failures are persisted. Dashboards and charts use recorded API/database/artifact results rather than fabricated display values. Model selection is explicit, and the report distinguishes the active selected checkpoint from a separate secure-verification experiment.
+P106 [List Bullet] User layer: React Admin and Doctor workspaces.
+P107 [List Bullet] Service layer: FastAPI routes, authentication, authorization, and validation.
+P108 [List Bullet] Persistence layer: SQLite and SQLAlchemy for application and experiment records.
+P109 [List Bullet] Research layer: PyTorch/torchvision ResNet18, Flower orchestration, Opacus DP-SGD, and cryptographic masking adapter.
+P110 [List Bullet] Execution layer: separate worker, local hospital-client processes, protected storage, and experiment artifacts.
+P111 [Heading 2] 2.2 Proposed System Overview (Research Contributions)
+P112 [Normal] The project contribution is primarily an integrated implementation and verification workflow rather than a claim of a new neural-network architecture. It combines a canonical ResNet18 image-classification contract with centralized and federated training strategies, non-IID client partitioning, a secure aggregation protocol integration, and an experimental differential-privacy mechanism.
+P113 [Normal] A second contribution is the explicit separation of privacy properties. Keeping raw images at local clients is a data-locality property. SecAgg+ aims to restrict what the coordinator can inspect about individual client contributions under its protocol assumptions. DP-SGD aims to bound the contribution of individual examples through clipping and noise with an accountant. These mechanisms address different risks and must not be conflated.
+P114 [Normal] A third contribution is application-level governance. The application has two roles, Admin and Doctor. Patient records are owned by authorized doctors; Admin permissions do not provide patient scan access through the application. Protected storage and retrieval, session and CSRF controls, ownership checks, experiment persistence, and report generation are integrated into the software.
+P115 [Normal] The system's research value is therefore demonstrated through actual local execution and recorded tests, while its limits remain explicit. It provides a foundation for more rigorous multi-seed, patient-independent, external, and multi-host studies.
+P116 [List Bullet] Consistent model architecture and class contract across training and inference.
+P117 [List Bullet] Reproducible data-manifest and duplicate-audit workflow.
+P118 [List Bullet] Actual local optimization and aggregation across three simulated clients.
+P119 [List Bullet] Separate evaluation of secure aggregation and experimental DP-SGD.
+P120 [List Bullet] Application workflows with role- and ownership-based access controls.
+P122 [Heading 1] CHAPTER 3: SYSTEM DESIGN
+P123 [Heading 2] 3.1 System Requirements
+P124 [Normal] The requirements are divided into hardware/runtime considerations and software dependencies. The README documents a CPU-based PyTorch environment and the software versions inspected for the project. It does not provide a complete, verified physical machine specification such as processor model, installed RAM, or graphics-card model. Those values are therefore not invented in this report.
+P125 [Normal] The application is designed to run locally on a development computer with sufficient memory and storage for the source dataset, Python environment, frontend dependencies, database, uploaded files, experiment logs, and model checkpoints. CPU execution is supported by the inspected PyTorch build. Training time depends on image resolution, batch size, number of local epochs, federated rounds, and DP settings.
+P127 [Heading 2] 3.1.1 Hardware Requirements
+P128 [Normal] The project README confirms that the inspected machine environment used a CPU-only PyTorch build. It does not state the exact processor, physical RAM, GPU, or disk capacity. For this reason, this report records the verified compute configuration only and leaves machine-specific details to be added from the actual development system if required by the department.
+P129 [Normal] Since training and secure aggregation experiments are computationally heavier than ordinary application use, adequate memory and free storage are recommended. The runtime can be operated on CPU, but experiment duration may increase substantially as input resolution, batch size, local epochs, and number of rounds increase. Differential privacy can add further processing overhead because per-sample gradients and accounting are required.
+P130 [Normal] Three hospital clients are launched as local research processes. Their execution on one machine should not be interpreted as a benchmark of three independent servers. A future deployment across separate hosts will require network, authentication, resource, and operational testing that is outside the current verified scope.
+P131 [List Bullet] Verified: PyTorch 2.12.0+cpu in the inspected environment.
+P132 [List Bullet] Not specified by the source: exact CPU model, RAM capacity, GPU model, and storage capacity.
+P133 [List Bullet] Operational recommendation: use a machine with adequate memory and storage for the dataset and concurrent processes.
+P134 [Heading 2] 3.1.2 Software Requirements
+P135 [Normal] The software stack combines a Python backend and machine-learning environment with a JavaScript frontend. Versions below are the inspected project snapshot recorded in the README; package pins and lockfiles should be used for reproducibility rather than assuming that later versions are interchangeable.
+P137 [Heading 2] 3.2 System Architecture
+P138 [Normal] The application architecture separates browser interaction, API services, persistence, protected file storage, model inference, and long-running training. The browser communicates with FastAPI through same-origin API requests proxied by Vite. The browser does not connect directly to SQLite or read model files. The API applies identity, role, and ownership checks before returning protected records or files.
+P139 [Normal] FastAPI interacts with SQLite through SQLAlchemy. Application entities include users, patients, sessions, visits/follow-ups, analyses, reports, and experiment tracking records. Protected storage contains uploaded images, generated heatmaps, PDF reports, and runtime logs. The inference service loads the selected ResNet18 checkpoint using strict metadata validation.
+P140 [Normal] Training experiments are placed in a persistent SQL queue. A separate Python worker claims jobs and invokes the shared PyTorch training engine. The worker writes round metrics, results, checkpoints, and failure states to the database and experiment artifact directories. This design prevents a long-running training task from blocking an ordinary API request.
+P141 [Normal] Figure 3.1: High-level PULSAR architecture diagram showing React UI, FastAPI, SQLite, protected storage, ResNet18 inference, experiment queue, worker, and Flower clients.
+P142 [Heading 2] 3.2 System Architecture – Federated Workflow
+P143 [Normal] The federated workflow uses a coordinator and three local hospital client processes. At the beginning of a round, the coordinator provides the current global model parameters and protocol instructions. Each client performs local optimization using its own partition. The clients then return permitted update messages for aggregation.
+P144 [Normal] In FedAvg, the coordinator computes a sample-weighted average of client model parameters. In FedProx, each client optimizes a local objective containing a proximal penalty relative to the received global parameters. This helps control client drift when local data distributions differ. The clients are simulated locally and share one machine and filesystem.
+P145 [Normal] In the secure workflow, the Flower SecAgg+ stages coordinate key setup, masked update upload, and aggregate reconstruction. A cryptographic pseudorandom generator adapter expands protocol material into masks. The client modifier masks model arrays inside the client process and clears the unmasked array records before the reply crosses the process boundary. The coordinator strategy receives the reconstructed weighted aggregate, not the individual unmasked client models.
+P146 [Normal] The documented threat model is limited. The clients share a host; a host administrator is outside the protection boundary; client collusion is not covered; and independent multi-host deployment has not been validated. These constraints must accompany any description of the secure aggregation feature.
+P147 [Normal] Figure 3.2: Federated round diagram: global model broadcast → local training at Hospital A/B/C → masked contributions → aggregate reconstruction → global validation.
+P148 [Heading 2] 3.3 Module Description – User and Record Management
+P149 [Normal] Authentication and account management provide two application roles: Admin and Doctor. Login and logout use revocable opaque sessions. Passwords are stored using a password-hashing mechanism; session and role/status checks are enforced by backend dependencies. The application does not use JWTs stored in localStorage as its documented authentication approach.
+P150 [Normal] The Admin workspace supports doctor account management, including creating, updating, activating or deactivating accounts, and resetting doctor passwords. Admins can inspect aggregate application statistics, experiment records, model comparisons, and privacy evidence. Admin permissions do not grant access to patient scans or individual patient records through the application.
+P151 [Normal] The Doctor workspace supports patient registration and record management. Doctors can search, filter, sort, and page through their records, update patient details, and record visits and follow-ups. The ownership model assigns a patient record to one doctor. Backend checks enforce ownership when a doctor requests a patient, image, analysis, or report.
+P152 [Normal] Patients are not application users and cannot sign in. The system does not include patient, nurse, or receptionist roles. These boundaries simplify the current role model and prevent the report from implying workflows that are not implemented.
+P153 [List Bullet] Roles: Admin and Doctor.
+P154 [List Bullet] Patient records are not user accounts.
+P155 [List Bullet] Doctor ownership checks isolate patient records between doctors.
+P156 [List Bullet] Admin has account and aggregate research oversight functions, not patient-image access through the application.
+P157 [Heading 2] 3.3 Module Description – Image Analysis and Explainability
+P158 [Normal] The image upload module accepts supported PNG and JPEG files. The backend checks the extension, MIME type, and file content agreement, decodes and re-encodes the image, and applies file-size and dimension constraints. The documented upload limit is 10 MiB. Uploaded files are stored in protected storage and are retrieved only through authorized endpoints.
+P159 [Normal] The inference module uses the selected checkpoint at `ml/saved_models/approved.pt`, identified in the README as version `centralized-verification`. The active architecture is ResNet18 with a four-class output head. Strict checkpoint metadata checks validate the model identity, output mapping, and preprocessing contract. The system does not silently substitute random or legacy weights when a checkpoint is invalid.
+P160 [Normal] The inference result contains the predicted dataset class and class probabilities, together with model version/hash metadata. These values describe the model output for the submitted image. They are not calibrated clinical risk estimates and do not establish the probability that an individual patient has cancer.
+P161 [Normal] Grad-CAM is generated from the ResNet18 layer4 feature maps and gradients for a selected class score. It creates a heatmap overlay that can help a user inspect which image regions contributed to that score. The visualization does not constitute tumour segmentation, lesion localization, or clinical proof.
+P162 [Normal] Figure 3.3: Doctor image-analysis workflow with a protected image upload, class result, and Grad-CAM overlay. Insert actual application screenshot.
+P163 [Heading 2] 3.3 Module Description – Federated Learning and Experiment Tracking
+P164 [Normal] The federated learning module supports centralized training, FedAvg, and FedProx using a shared training engine and the same ResNet18 model family. Client data partitions are reproducible and non-IID, meaning that the distribution of classes may differ between Hospital A, Hospital B, and Hospital C. This enables the project to examine how decentralized training behaves when clients do not hold identical data distributions.
+P165 [Normal] FedAvg performs sample-weighted aggregation of client model parameters. FedProx modifies the local objective by adding a proximal term that penalizes large deviation from the global parameters. The project also supports experiment configurations and per-round metrics so that training behavior can be reviewed rather than represented by static demonstration values.
+P166 [Normal] Experiments are submitted through the application and stored in a SQL-backed queue. A separate worker claims and executes jobs, persists status and metrics, and writes model checkpoints and experiment artifacts. The documented operation uses one worker. The application records completed, failed, and invalidated historical experiments so that an unsuitable result is not silently presented as valid evidence.
+P167 [List Bullet] Training strategies: centralized, FedAvg, FedProx.
+P168 [List Bullet] One active model architecture: ResNet18.
+P169 [List Bullet] Three simulated hospital clients with reproducible non-IID partitions.
+P170 [List Bullet] Experiment queue and worker persist configurations, round metrics, outcomes, and artifacts.
+P171 [Heading 2] 3.3 Module Description – Secure Aggregation and Differential Privacy
+P172 [Normal] Secure aggregation and differential privacy are implemented as separate mechanisms. Flower SecAgg+ is integrated into the federated workflow with a cryptographic PRG adapter. The protocol is designed so that the coordinator obtains an aggregate contribution without directly reading each individual unmasked client update, under the documented assumptions. Tests cover weighted reconstruction, masked payload visibility, fresh masks, seed/domain separation, dropout, malformed or replayed messages, and corrupted encrypted shares.
+P173 [Normal] The DP-SGD module uses Opacus to support per-sample gradient handling, gradient clipping, Gaussian noise addition, and Rényi Differential Privacy accounting. The documented implementation is experimental and limited to the specified update mechanism. Its scope must not be described as a complete end-to-end privacy guarantee for all records, outputs, logs, or application data.
+P174 [Normal] Secure aggregation does not itself provide differential privacy. Differential privacy does not itself prevent a coordinator from viewing raw model updates. Transport encryption, storage protection, access controls, secure aggregation, and DP-SGD address different parts of the system's risk. A production deployment would require a complete threat model, privacy unit, release/composition policy, production randomness, and independent review.
+P175 [List Bullet] SecAgg+: Flower protocol integration and masked-update workflow.
+P176 [List Bullet] Threat model: semi-honest coordinator; no client collusion; shared-host administrator excluded.
+P177 [List Bullet] DP-SGD: Opacus experimental mechanism with per-sample processing and RDP accounting.
+P178 [List Bullet] Production DP randomness and complete release/composition policy remain future work.
+P180 [Heading 1] CHAPTER 4: IMPLEMENTATION AND TESTING
+P181 [Heading 2] 4.1 Experimental Setup
+P182 [Normal] The project was implemented as a local full-stack research application. The frontend is served by Vite on the documented local address `http://127.0.0.1:7351`. The backend uses FastAPI and Uvicorn. SQLite is the active database at `backend/research.db`, accessed through SQLAlchemy. The project also includes Alembic migrations for schema evolution.
+P183 [Normal] The inspected software snapshot records Python 3.14.0, Node.js 24.13.0, npm 10.8.2, React 19.2.4, Vite 7.3.7, FastAPI 0.138.2, SQLAlchemy 2.0.55, PyTorch 2.12.0+cpu, torchvision 0.27.0+cpu, Flower 1.40.0, and Opacus 1.6.0. These are documented environment versions and should be reproduced using the project's dependency files and lockfile.
+P184 [Normal] The model evaluation uses the approved held-out test manifest and the selected ResNet18 checkpoint. The federated experiments use three local client processes and non-IID data partitions. The secure aggregation and DP-SGD paths are exercised as separate research mechanisms and must be interpreted according to their recorded configurations. The README does not provide verified physical CPU/RAM/GPU specifications, so no exact hardware configuration is stated here.
+P186 [Heading 2] 4.1 Experimental Setup – Dataset and Model Contract
+P187 [Normal] The dataset workflow is an important part of the experimental design. The README documents byte-level and pixel-level hashing, duplicate grouping, reproducible split manifests, and audit checks intended to identify duplicate images and prevent exact duplicate overlap across train, validation, and test splits. Older model artifacts affected by dataset leakage or incompatible metadata were excluded from the active inference path.
+P188 [Normal] The active model is a ResNet18 architecture with a four-class output head. Model checkpoints include metadata required to reconstruct and validate the model, including class mapping and preprocessing. The inference service uses strict loading so that a checkpoint with incompatible metadata or label mapping fails rather than being silently accepted.
+P189 [Normal] The README does not establish that all images have trusted patient identifiers or that every near-duplicate scan has been identified. Patient/study identifiers and trusted source/modality metadata remain necessary for a stronger patient-independent evaluation. The current held-out result must therefore be interpreted as a result on the documented dataset split, not proof of generalization to unseen hospitals.
+P190 [List Bullet] Byte and pixel hashing for duplicate detection.
+P191 [List Bullet] Grouped, reproducible split manifest with exact cross-split overlap checks.
+P192 [List Bullet] Strict checkpoint metadata, label mapping, and preprocessing validation.
+P193 [List Bullet] Patient/study-level independence and external validation remain future work.
+P194 [Heading 2] 4.2 Flowchart – Application Workflow
+P195 [Normal] The application workflow begins when a user opens the PULSAR web interface and authenticates. The backend validates the credentials and establishes a session. The application then loads the workspace associated with the user's role. Admins can manage doctor accounts and review aggregate experiment information; Doctors can manage their own patient records and clinical workflow.
+P196 [Normal] During patient image analysis, the doctor selects an owned patient record and uploads a PNG or JPEG image. The backend validates the file and stores it in protected storage. The inference service loads the approved ResNet18 checkpoint, performs preprocessing and prediction, and stores the analysis result and associated metadata. Grad-CAM output is generated for visual review. The doctor may add observations and generate a PDF report.
+P197 [Normal] During a research experiment, an authorized user submits a configuration. The backend creates a queued experiment record. The separate worker claims the job and starts centralized or federated training. For federated experiments, three local clients train on their partitions and the selected aggregation strategy updates the global model. Results, metrics, failures, and checkpoints are persisted for later review.
+P198 [Normal] Figure 4.1: Application flowchart: Login → role workspace → patient selection → image validation/upload → ResNet18 inference → Grad-CAM → doctor review → PDF report.
+P199 [Heading 2] 4.2 Flowchart – Federated Experiment Workflow
+P200 [Normal] The federated experiment flow starts with a validated experiment configuration and a reproducible dataset manifest. The coordinator initializes the global ResNet18 model and prepares the three simulated client partitions. In each round, the current global parameters are made available to the clients. Each client performs local optimization according to the selected strategy and local training configuration.
+P201 [Normal] For a FedAvg run, the clients return model updates that are combined using sample-weighted aggregation. For FedProx, the local objective includes a proximal regularization term before aggregation. In a secure run, the SecAgg+ protocol coordinates the required setup and masked uploads; the coordinator reconstructs the permitted aggregate after protocol completion. If protocol thresholds or failure conditions are not met, the round aborts rather than fabricating an aggregate.
+P202 [Normal] After aggregation, the global model is evaluated on the designated validation data and round metrics are recorded. The training engine tracks the best checkpoint according to the configured validation process. At completion, the experiment status, metrics, checkpoint, and artifacts are persisted. The selected application inference model changes only through the explicit model approval workflow.
+P203 [Normal] Figure 4.2: Federated training flowchart: configuration → manifest validation → client partitioning → broadcast → local training → aggregation/SecAgg+ → validation → checkpoint and metrics.
+P204 [Heading 2] 4.3 Screenshots and Description – Application Interface
+P205 [Normal] The following screenshot positions are reserved for actual project captures. The project README describes the Admin and Doctor workspaces and their connected workflows, but the screenshots are to be inserted by the project team. The report intentionally does not fabricate interface images or claim that a particular screenshot has been captured.
+P206 [Normal] Figure 4.3: Insert the PULSAR login screen showing the authentication entry point. Add a short note describing the displayed fields and role-based sign-in.
+P207 [Heading 2] 4.3 Screenshots and Description – Admin and Doctor Workspaces
+P208 [Normal] The Admin workspace is intended for doctor-account administration and aggregate research oversight. The documented functions include creating, updating, activating or deactivating doctor accounts, resetting doctor passwords, and reviewing aggregate application statistics, experiment records, model comparisons, and privacy evidence. Admin access does not include patient scan access through application role permissions.
+P209 [Normal] The Doctor workspace supports patient registration and management, patient search and filtering, visit/follow-up history, image upload, image analysis, Grad-CAM review, doctor observations, and PDF report generation. Patient records are associated with an authorized doctor, and backend ownership checks protect records and associated files.
+P210 [Normal] Figure 4.4: Insert actual Admin Dashboard screenshot. Figure 4.5: Insert actual Doctor Dashboard screenshot. Ensure all personal or patient-identifying information is removed or masked.
+P211 [Heading 2] 4.3 Screenshots and Description – Patient and Image Workflow
+P212 [Normal] The patient workflow begins with a doctor creating or selecting a patient record. The application stores patient details and supports record updates and visit/follow-up entries. A patient is not a login account; access is provided through the authorized doctor's session and ownership permissions.
+P213 [Normal] For image analysis, the doctor uploads a supported PNG or JPEG file. The backend validates the file and stores it in a protected location. The selected model produces a four-class output and class probabilities. Grad-CAM generates an overlay to visualize image regions associated with the selected class score. The doctor can add observations and generate a report containing the image, result, and review information.
+P214 [Normal] Figure 4.6: Insert actual Patient Registration/Profile screenshot. Figure 4.7: Insert actual Image Upload and Prediction Results screenshot. Figure 4.8: Insert actual Grad-CAM Visualization screenshot.
+P215 [Heading 2] 4.3 Screenshots and Description – Federated and Privacy Experiments
+P216 [Normal] The experiment dashboard presents persisted experiment information rather than hard-coded demonstration metrics. The README documents a SQL-backed queue, a separate worker, per-round metrics, results, failure records, and experiment artifacts. The dashboard is intended to help users inspect the progress and outcome of centralized and federated runs.
+P217 [Normal] The secure aggregation and differential-privacy views should be described according to the actual experiment configuration displayed in the screenshot. A secure aggregation result must not be labelled as a DP result unless DP was enabled for that run. The README specifically records that DP was disabled in the separate 36.04% secure verification experiment.
+P218 [Normal] Figure 4.9: Insert actual Federated Learning Experiment Dashboard screenshot. Figure 4.10: Insert actual Secure Aggregation / Differential Privacy evidence screenshot with configuration visible.
+P219 [Heading 2] 4.4 Testing – Backend and Application Tests
+P220 [Normal] The README records 42 distinct backend tests across the documented test runs: 41 tests passed in one full backend suite, followed by one subsequently added encrypted-key-share tamper test that also passed. These counts must not be represented as 42 tests passing in a single invocation. The recorded browser suite contains six passing tests. The frontend production build and ESLint checks passed, and `pip check` reported no broken requirements in the inspected snapshot.
+P221 [Normal] Backend tests cover authentication, role permissions, disabled-user behavior, session handling, patient ownership isolation, patient workflows, image validation, protected access, strict checkpoint loading, saved analysis outputs, Grad-CAM, PDF report content and ownership, dataset integrity, centralized/federated model contracts, secure protocol behavior, privacy accounting, and worker execution.
+P222 [Normal] Protocol tests cover weighted reconstruction, masked payload visibility at the coordinator boundary, fresh masks, seed/domain separation, client dropout, minimum participant conditions, malformed or replayed replies, and corrupted encrypted shares. Worker tests exercise secure FedAvg and secure FedProx with DP using a real repository image subset and persist results through the database and checkpoint workflow.
+P223 [Heading 2] 4.4 Testing – Frontend, Dataset, and Evidence Boundaries
+P224 [Normal] The six recorded browser tests exercise role navigation, forms, real API workflows, protected PDF downloads, mobile layout, and loading/error/retry states. A populated secure-ledger browser check is also recorded as passed. The frontend build and lint checks passed in the documented snapshot. These are local software verification results and are not a security certification or clinical validation.
+P225 [Normal] The dataset repeat audit reproduced the exact manifest digest and reported no exact cross-split overlap. This supports reproducibility and exact duplicate isolation for the audited files. It does not establish that every near-duplicate scan has been detected or that train/test separation is patient-independent. The README notes that patient/study identifiers and external validation remain needed.
+P226 [Normal] Some tests use test-only known vectors, isolated test databases, and explicitly untrained weights for fixtures. These fixtures are not production predictions or benchmark metrics. The recorded test evidence describes previous execution records; preparing this report does not mean that the full training or test suite has been rerun.
+P229 [Heading 1] CHAPTER 5: CONCLUSION AND FUTURE SCOPE
+P230 [Heading 2] 5.1 Conclusion
+P231 [Normal] PULSAR demonstrates an integrated research prototype for lung image classification and privacy-aware federated learning experimentation. The system combines a ResNet18 image classifier, Grad-CAM visualization, doctor-managed patient records, protected file handling, PDF reports, centralized and federated training, secure aggregation integration, experimental DP-SGD, and persistent experiment tracking.
+P232 [Normal] The implementation uses a single ResNet18 architecture with a four-class output head. Centralized training, FedAvg, and FedProx are training approaches that use this common model family. Three simulated hospital clients perform local optimization on non-IID partitions. Flower SecAgg+ provides a secure aggregation workflow under a limited documented threat model, while Opacus supports an experimental DP-SGD mechanism with per-sample processing and RDP accounting.
+P233 [Normal] The selected inference checkpoint achieved 75.68% accuracy, with 84 correct classifications among 111 held-out images. This result is specific to the documented test set and does not establish clinical diagnostic accuracy or individual patient certainty. A separate one-round secure verification experiment recorded 36.04% accuracy; it is not the active model's accuracy, and DP was disabled in that run.
+P234 [Normal] The project also demonstrates application-level controls through Admin and Doctor roles, doctor-owned patient records, protected image and report retrieval, and experiment persistence. The recorded backend, browser, build, lint, and dataset-audit results provide evidence of local software verification. However, the clients are simulated on one machine, the privacy mechanisms have documented limits, and the model has not undergone external clinical validation.
+P235 [Normal] Overall, the project meets its research-prototype objective by implementing and testing a connected application and federated learning workflow while documenting what remains unverified. It should be presented as a technical research and educational system, not as a clinically approved diagnostic tool.
+P236 [Heading 2] 5.2 Future Scope
+P237 [Normal] Future work should first strengthen dataset quality and evaluation. The project requires trusted patient/study identifiers, source and modality metadata, patient-independent grouped evaluation, review of related or near-duplicate scans, external dataset testing, uncertainty intervals, calibration analysis, and clinically meaningful error analysis. Model selection should use validation metrics, with test data reserved for final evaluation.
+P238 [Normal] Predictive performance can be investigated through controlled experiments using justified augmentation, larger input resolution, pretrained initialization, learning-rate schedules, class-imbalance analysis, and hyperparameter search. Such changes must be trained and evaluated before any improvement is claimed. Centralized, FedAvg, FedProx, secure, and DP experiments should be compared under matched initialization, preprocessing, optimization budgets, data splits, and multiple random seeds where practical.
+P239 [Normal] Federated deployment can be extended from local simulation to independently administered hosts. This requires authenticated inter-client transport, deployment and dropout testing across machines, concurrency and operations design, and independent review of the SecAgg+ integration and cryptographic PRG adapter. Stronger threat models may need to address client collusion and malicious servers.
+P240 [Normal] The differential-privacy implementation requires production-grade randomness, an explicitly justified privacy unit, complete release and composition accounting, and a documented policy for all model releases and outputs. The project also requires PostgreSQL integration testing if a server database is adopted, TLS, at-rest encryption, backup and restore procedures, retention policies, identity/MFA controls as required, and a review of dataset and software licenses.
+P241 [Normal] Finally, any move toward clinical use would require expert evaluation, appropriate institutional governance, regulatory assessment, usability testing, and prospective validation. Until those activities are completed, the application should remain a research prototype and should not be used to make independent patient-care decisions.
+P242 [List Bullet] Dataset: patient/study identifiers, trusted metadata, patient-independent splits, external validation.
+P243 [List Bullet] Model: matched multi-seed experiments, calibration, uncertainty, clinical error analysis, measured optimization.
+P244 [List Bullet] Federated deployment: independent hosts, authenticated transport, dropout/deployment tests, independent security review.
+P245 [List Bullet] Privacy: production randomness, justified privacy unit, complete release/composition policy, documented threat model.
+P246 [List Bullet] Operations: PostgreSQL validation if adopted, TLS, storage encryption, backups, retention, identity controls, license review.
+P247 [List Bullet] Clinical pathway: expert assessment, institutional governance, regulatory review, and prospective validation.
+P249 [Heading 1] REFERENCES
+P250 [Normal] [1] PULSAR Project Team, “DFL FINAL-CP – Complete Project README,” project implementation and verification documentation, documentation snapshot dated 21 October 2026.
+P251 [Normal] [2] PyTorch, “Transfer Learning for Computer Vision Tutorial.” Available: https://docs.pytorch.org/tutorials/beginner/transfer_learning_tutorial.html
+P252 [Normal] [3] Torchvision, “resnet18.” Available: https://docs.pytorch.org/vision/main/models/generated/torchvision.models.resnet18
+P253 [Normal] [4] Flower, “Secure Aggregation Example.” Available: https://flower.ai/docs/examples/flower-secure-aggregation.html
+P254 [Normal] [5] Flower, “Secure Aggregation Protocols.” Available: https://flower.ai/docs/framework/main/en/explanation-ref-secure-aggregation-protocols.html
+P255 [Normal] [6] Opacus, “PrivacyEngine API Documentation.” Available: https://opacus.ai/api/privacy_engine.html
+P256 [Normal] [7] Opacus, “Guide to Module Validator.” Available: https://opacus.ai/tutorials/guide_to_module_validator
+P257 [Normal] [8] Python Cryptographic Authority, “ChaCha20.” Available: https://cryptography.io/en/latest/hazmat/primitives/symmetric-encryption/
+P258 [Normal] [9] Python Cryptographic Authority, “HKDF.” Available: https://cryptography.io/en/latest/hazmat/primitives/key-derivation-functions/#hkdf
+P259 [Normal] [10] FastAPI, “FastAPI Documentation.” Available: https://fastapi.tiangolo.com/
+P260 [Normal] [11] SQLAlchemy, “SQLAlchemy Documentation.” Available: https://docs.sqlalchemy.org/
+P261 [Normal] [12] React, “React Documentation.” Available: https://react.dev/
+TABLE 0
+Project Guide | Head of Department
+Prof. Jayshree Bedade | Prof. Dr. Nilesh P. Sable
+Computer Science and Engineering (Artificial Intelligence) | Computer Science and Engineering (Artificial Intelligence)
+TABLE 1
+Section | Page
+CHAPTER 1: INTRODUCTION | 
+1.1 Overview of the Project | 1
+1.2 Problem Statement | 2
+1.3 Objectives | 3
+1.4 Scope of the Project | 4
+CHAPTER 2: LITERATURE SURVEY | 5
+2.1 Existing System and Its Limitations | 5
+2.2 Proposed System Overview | 7
+CHAPTER 3: SYSTEM DESIGN | 9
+3.1 System Requirements | 9
+3.1.1 Hardware Requirements | 9
+3.1.2 Software Requirements | 10
+3.2 System Architecture | 11
+3.3 Module Description | 13
+CHAPTER 4: IMPLEMENTATION AND TESTING | 17
+4.1 Experimental Setup | 17
+4.2 Flowchart | 18
+4.3 Screenshots and Description | 19
+4.4 Testing | 22
+CHAPTER 5: CONCLUSION AND FUTURE SCOPE | 25
+5.1 Conclusion | 25
+5.2 Future Scope | 26
+REFERENCES | 28
+TABLE 2
+Category | Requirement / documented position
+Compute | Local computer capable of running Python, Node.js, browser, and multiple local client processes.
+Accelerator | The inspected PyTorch build is CPU-only (2.12.0+cpu); no GPU requirement is claimed.
+Memory | Sufficient RAM for image batches, model training, frontend tooling, and concurrent local processes; exact capacity not documented.
+Storage | Space for dataset images, virtual environment, node modules, SQLite database, protected uploads, checkpoints, and logs.
+Network | Local loopback communication for the UI/API and local experiment processes; no production multi-site network is claimed.
+TABLE 3
+Layer | Technology / version recorded | Purpose
+Language/runtime | Python 3.14.0; Node.js 24.13.0; npm 10.8.2 | Backend, ML, worker, frontend tooling
+Frontend | React 19.2.4; Vite 7.3.7; Framer Motion; Lucide React | Role-based browser interface
+API | FastAPI 0.138.2; Uvicorn; Pydantic 2.12.5 | Validated HTTP API and service layer
+Database | SQLite; SQLAlchemy 2.0.55; Alembic 1.20.0 | Persistent records and schema migrations
+Machine learning | PyTorch 2.12.0+cpu; torchvision 0.27.0+cpu; NumPy 2.4.2; scikit-learn 1.8.0 | Model, preprocessing, metrics
+Federated learning | Flower 1.40.0 | FedAvg/FedProx orchestration and SecAgg+ workflow
+Differential privacy | Opacus 1.6.0 | Per-sample gradients, clipping, noise, RDP accounting
+Cryptography | cryptography 50.0.2; Python hashlib/secrets/hmac | Cryptographic primitives and security utilities
+Reports/testing | ReportLab 4.5.1; pytest 9.0.2; Playwright 1.64.1; ESLint | PDF output, automated tests, browser checks
+TABLE 4
+[INSERT PROJECT SCREENSHOT / DIAGRAM HERE]
+High-level PULSAR architecture diagram showing React UI, FastAPI, SQLite, protected storage, ResNet18 inference, experiment queue, worker, and Flower clients.
+TABLE 5
+[INSERT PROJECT SCREENSHOT / DIAGRAM HERE]
+Federated round diagram: global model broadcast → local training at Hospital A/B/C → masked contributions → aggregate reconstruction → global validation.
+TABLE 6
+[INSERT PROJECT SCREENSHOT / DIAGRAM HERE]
+Doctor image-analysis workflow with a protected image upload, class result, and Grad-CAM overlay. Insert actual application screenshot.
+TABLE 7
+Setup element | Documented configuration
+Frontend | React application served through Vite at 127.0.0.1:7351
+Backend | FastAPI with Uvicorn
+Database | SQLite at backend/research.db via SQLAlchemy
+Classifier | ResNet18, four-class output head
+Federated clients | Hospital A, Hospital B, Hospital C; local simulation
+Federated strategies | FedAvg and FedProx
+Secure aggregation | Flower SecAgg+ integration
+Differential privacy | Experimental Opacus DP-SGD
+Compute build | PyTorch 2.12.0+cpu
+TABLE 8
+[INSERT PROJECT SCREENSHOT / DIAGRAM HERE]
+Application flowchart: Login → role workspace → patient selection → image validation/upload → ResNet18 inference → Grad-CAM → doctor review → PDF report.
+TABLE 9
+[INSERT PROJECT SCREENSHOT / DIAGRAM HERE]
+Federated training flowchart: configuration → manifest validation → client partitioning → broadcast → local training → aggregation/SecAgg+ → validation → checkpoint and metrics.
+TABLE 10
+[INSERT PROJECT SCREENSHOT / DIAGRAM HERE]
+Insert the PULSAR login screen showing the authentication entry point. Add a short note describing the displayed fields and role-based sign-in.
+TABLE 11
+[INSERT PROJECT SCREENSHOT / DIAGRAM HERE]
+Insert actual Admin Dashboard screenshot. Figure 4.5: Insert actual Doctor Dashboard screenshot. Ensure all personal or patient-identifying information is removed or masked.
+TABLE 12
+[INSERT PROJECT SCREENSHOT / DIAGRAM HERE]
+Insert actual Patient Registration/Profile screenshot. Figure 4.7: Insert actual Image Upload and Prediction Results screenshot. Figure 4.8: Insert actual Grad-CAM Visualization screenshot.
+TABLE 13
+[INSERT PROJECT SCREENSHOT / DIAGRAM HERE]
+Insert actual Federated Learning Experiment Dashboard screenshot. Figure 4.10: Insert actual Secure Aggregation / Differential Privacy evidence screenshot with configuration visible.
+TABLE 14
+Verification area | Recorded evidence | Interpretation
+Backend | 41 passed in one full run + 1 later test passed | 42 distinct tests across recorded runs
+Browser | 6 passed | Local end-to-end workflow checks
+Frontend | Production build and ESLint passed | Build/static lint verification
+Dependencies | pip check clean | No broken requirements in inspected environment
+Dataset | Manifest digest reproduced; no exact cross-split overlap | Does not prove patient-level independence
+Privacy/protocol | SecAgg+, failure/dropout, DP-related tests recorded | Scoped implementation evidence, not certification

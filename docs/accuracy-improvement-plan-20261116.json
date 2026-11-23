@@ -1,0 +1,43 @@
+{
+  "date": "2026-11-16",
+  "objective": "Improve the actual selected ResNet18 classifier, never clamp displayed metrics.",
+  "configuration_fixed_at_launch": {
+    "algorithm": "centralized",
+    "rounds": 20,
+    "local_epochs": 1,
+    "batch_size": 8,
+    "image_size": 224,
+    "learning_rate": 0.0001,
+    "optimizer": "adam",
+    "seed": 42,
+    "alpha": 0.5,
+    "mu": 0.01,
+    "patience": 6,
+    "pretrained": true,
+    "secure_aggregation": false,
+    "dp": {
+      "enabled": false,
+      "delta": 1e-05,
+      "noise_multiplier": 1.1,
+      "max_grad_norm": 1.0,
+      "target_epsilon": null
+    },
+    "manifest": "F:\\DFL-CP\\ml\\data\\manifest.json",
+    "threads": 4
+  },
+  "selection": "Highest validation macro F1 within this single run; configured patience 6 and maximum 20 rounds.",
+  "test_policy": "One final evaluation after validation-only checkpoint selection; original 111-image boundary unchanged.",
+  "split_counts": {
+    "train": 506,
+    "val": 110,
+    "test": 111
+  },
+  "manifest_sha256": "7b4e01e5e73fbbcb9d7714317246c9f11204a4e81e974f51e4112788e0681ffd",
+  "limitations": [
+    "Existing test split has been used in previous project experiments; this is not a fresh external benchmark.",
+    "Patient identifiers unavailable; patient-independent performance unverified.",
+    "This run is centralized and has neither DP-SGD nor secure aggregation; historical federated metrics remain unchanged."
+  ],
+  "pretrained_source": "torchvision ResNet18_Weights.DEFAULT / https://download.pytorch.org/models/resnet18-f37072fd.pth",
+  "pretrained_sha256": "f37072fd47e89c5e827621c5baffa7500819f7896bbacec160b1a16c560e07ec"
+}

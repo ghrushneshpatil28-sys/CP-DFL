@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "seed": 42,
+  "requested_ratios": [
+    0.7,
+    0.15,
+    0.15
+  ],
+  "preserved_existing_test": true,
+  "validation_scope": "provisional image-group split; patient independence unverified",
+  "classes": [
+    "Adenocarcinoma",
+    "Large Cell Carcinoma",
+    "No Cancer",
+    "Squamous Cell Carcinoma"
+  ],
+  "image_files": 1565,
+  "unique_images": 727,
+  "duplicate_groups": 727,
+  "original_train_test_duplicate_groups": 111,
+  "missing_patient_ids": 1565,
+  "invalid": [],
+  "distribution": {
+    "train": {
+      "Adenocarcinoma": 151,
+      "Large Cell Carcinoma": 130,
+      "No Cancer": 46,
+      "Squamous Cell Carcinoma": 179
+    },
+    "val": {
+      "Adenocarcinoma": 33,
+      "Large Cell Carcinoma": 28,
+      "No Cancer": 10,
+      "Squamous Cell Carcinoma": 39
+    },
+    "test": {
+      "Adenocarcinoma": 33,
+      "Large Cell Carcinoma": 29,
+      "No Cancer": 10,
+      "Squamous Cell Carcinoma": 39
+    }
+  },
+  "duplicate_examples": [
+    [
+      "backend/DataSet/pool/Adenocarcinoma/train_000000 (6).png",
+      "backend/DataSet/train/Adenocarcinoma/train_000000 (6).png"
+    ],
+    [
+      "backend/DataSet/pool/Adenocarcinoma/train_000005 (3).png",
+      "backend/DataSet/train/Adenocarcinoma/train_000005 (3).png"
+    ],
+    [
+      "backend/DataSet/pool/Adenocarcinoma/train_000005 (9).png",
+      "backend/DataSet/train/Adenocarcinoma/train_000005 (9).png"
+    ],
+    [
+      "backend/DataSet/pool/Adenocarcinoma/train_000008 (10).png",
+      "backend/DataSet/train/Adenocarcinoma/train_000008 (10).png"
+    ],
+    [
+      "backend/DataSet/pool/Adenocarcinoma/train_000009 (3).png",
+      "backend/DataSet/train/Adenocarcinoma/train_000009 (3).png"
+    ],
+    [
+      "backend/DataSet/pool/Adenocarcinoma/train_000009 (7).png",
+      "backend/DataSet/train/Adenocarcinoma/train_000009 (7).png"
+    ],
+    [
+      "backend/DataSet/pool/Adenocarcinoma/train_000013 (4).png",
+      "backend/DataSet/train/Adenocarcinoma/train_000013 (4).png"
+    ],
+    [
+      "backend/DataSet/pool/Adenocarcinoma/train_000013 (8).png",
+      "backend/DataSet/train/Adenocarcinoma/train_000013 (8).png"
+    ],
+    [
+      "backend/DataSet/pool/Adenocarcinoma/train_000014 (7).png",
+      "backend/DataSet/train/Adenocarcinoma/train_000014 (7).png"
+    ],
+    [
+      "backend/DataSet/pool/Adenocarcinoma/train_000015 (10).png",
+      "backend/DataSet/test/Adenocarcinoma/train_000015 (10).png",
+      "backend/DataSet/train/Adenocarcinoma/train_000015 (10).png"
+    ]
+  ]
+}
